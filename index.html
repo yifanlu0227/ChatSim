@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="description"
+        content="ChatSim: Editable Scene Simulation for Autonomous Driving via LLM-Agent Collaboration">
+  <meta name="keywords" content="ChatSim, LLM, NeRF, Simulation">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ChatSim: Editable Scene Simulation for Autonomous Driving via LLM-Agent Collaboration</title>
+
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-PYVRSFMDRL"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+
+    function gtag() {
+      dataLayer.push(arguments);
+    }
+
+    gtag('js', new Date());
+
+    gtag('config', 'G-PYVRSFMDRL');
+  </script>
+
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro"
+        rel="stylesheet">
+
+  <link rel="stylesheet" href="./static/css/bulma.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-carousel.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-slider.min.css">
+  <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="stylesheet" href="./static/css/index.css">
+  <link rel="icon" href="./static/images/icon.jpg">
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script defer src="./static/js/fontawesome.all.min.js"></script>
+  <script src="./static/js/bulma-carousel.min.js"></script>
+  <script src="./static/js/bulma-slider.min.js"></script>
+  <script src="./static/js/index.js"></script>
+</head>
+<body>
+
+
+<section class="hero">
+  <div class="hero-body">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column has-text-centered">
+          <h1 class="title is-1 publication-title">ChatSim: Editable Scene Simulation for Autonomous Driving via LLM-Agent Collaboration</h1>
+          <div class="is-size-5 publication-authors">
+            <span class="author-block">
+              <a href="https://www.linkedin.com/in/yuxi-wei-b76568236/"><u>Yuxi Wei</u></a><sup>1<b>*</b></sup>,</span>
+            <span class="author-block">
+              <a href="https://www.linkedin.com/in/zi-wang-b675aa236/"><u> Zi Wang</u></a><sup>3<b>*</b></sup>,</span>
+            <span class="author-block">
+              <a href="https://yifanlu0227.github.io"><u> Yifan Lu</u></a><sup>1<b>*</b></sup>,
+            </span>
+            <span class="author-block">
+              <a href="https://scholar.google.com/citations?user=UgmMqV0AAAAJ"><u> Chenxin Xu</u></a><sup>1<b>*</b></sup>,
+            </span>
+            <br>
+            <span class="author-block">
+              <a href="https://scholar.google.com/citations?user=MpUEflgAAAAJ">Changxing Liu</a><sup>1</sup>,
+            </span>
+            <span class="author-block">
+              <a href="https://sites.google.com/view/fromandto"> Hao Zhao</a><sup>3</sup>,
+            </span>
+            <span class="author-block">
+              <a href="https://siheng-chen.github.io/"><u> Siheng Chen</u></a><sup>12<b>†</b></sup>
+            </span>
+            <span class="author-block">
+              <a href="https://scholar.google.com/citations?user=x_sgJskAAAAJ"> Yanfeng Wang</a><sup>12</sup>
+            </span>
+          </div>
+
+          <div class="is-size-5 publication-authors">
+            * denotes equal contribution.
+            <br>
+            † denotes corresponding author.
+          </div>
+
+          <div class="is-size-5 publication-authors">
+            <span class="author-block"><sup>1</sup> Shanghai Jiao Tong University,</span>
+            <span class="author-block"><sup>2</sup> Shanghai AI Laboratory,</span>
+            <span class="author-block"><sup>3</sup> Carnegie Mellon University,</span>
+            <span class="author-block"><sup>4</sup> Tsinghua University</span>
+          </div>
+
+          <div class="column has-text-centered">
+            <div class="publication-links">
+              <!-- PDF Link. -->
+              <span class="link-block">
+                <a href="javascript:;"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="ai ai-arxiv"></i>
+                  </span>
+                  <span>arXiv (Coming Soon)</span>
+                </a>
+              </span>
+              <!-- Video Link. -->
+              <!-- <span class="link-block">
+                <a href="https://www.youtube.com/watch?v=MrKrnHhk8IA"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fab fa-youtube"></i>
+                  </span>
+                  <span>Video</span>
+                </a>
+              </span> -->
+              <!-- Code Link. -->
+              <span class="link-block">
+                <a href="https://github.com/yifanlu0227/ChatSim"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fab fa-github"></i>
+                  </span>
+                  <span>Code</span>
+                  </a>
+              </span>
+              <!-- Dataset Link. -->
+              <span class="link-block">
+                <a href="https://github.com/yifanlu0227/ChatSim"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="far fa-images"></i>
+                  </span>
+                  <span>Data</span>
+                  </a>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+
+<section class="hero is-light is-small">
+  <div class="hero-body">
+    <section class="hero teaser">
+      <div class="container is-max-desktop">
+        <h2 class="subtitle">
+          <b> Case 1 (highly abstract command)</b>
+        </h2>
+        <div class="hero-body">
+          
+          <video id="case1" autoplay muted loop playsinline height="100%">
+            <source src="./static/videos_chatsim/traffic_jam_note.mp4"
+                    type="video/mp4">
+          </video>
+          <h2 class="subtitle has-text-centered">
+            <b> Language command</b>:
+            <i>"Create a traffic jam."</i>
+          </h2>
+          
+        </div>
+      </div>
+    </section> 
+    
+    <section class="hero teaser">
+      <div class="container is-max-desktop">
+        <h2 class="subtitle">
+          <b> Case 2 (complex command)</b>
+        </h2>
+        <div class="hero-body">
+          <video id="case2" autoplay muted loop playsinline height="100%">
+            <source src="./static/videos_chatsim/complex_input_note.mp4"
+                    type="video/mp4">
+          </video>
+          <h2 class="subtitle has-text-centered">
+            <b> Language command</b>:
+            <i>"Remove all cars in the scene and add a Porsche driving the wrong way toward me fast. 
+            Additionally, add a police car also driving the wrong way and chasing behind the Porsche. 
+            The view should be moved 5 meters ahead and 0.5 meters above."</i>
+          </h2>
+        </div>
+      </div>
+    </section> 
+
+    <section class="hero teaser">
+      <div class="container is-max-desktop">
+        <h2 class="subtitle">
+          <b> Case 3 (multi-round edition)</b>
+        </h2>
+        <div class="hero-body">
+          <video id="case3" autoplay muted loop playsinline height="100%">
+            <source src="./static/videos_chatsim/multiround_input_note_0.mp4"
+                    type="video/mp4">
+          </video>
+          <h2 class="subtitle has-text-centered">
+            <b> Language command (round 1)</b>:
+            <i>"Ego vehicle drives ahead slowly. Add a car to the close front that is moving ahead."</i>
+          </h2>
+
+          <video id="teaser" autoplay muted loop playsinline height="10%">
+            <source src="./static/videos_chatsim/multiround_input_note_1.mp4"
+                    type="video/mp4">
+          </video>
+          <h2 class="subtitle has-text-centered">
+            <b> Language command (round 2)</b>:
+            <i>"Modify the added car to turn left. Add another Chevrolet to the front of the added one."</i>
+          </h2>
+
+          <video id="teaser" autoplay muted loop playsinline height="100%">
+            <source src="./static/videos_chatsim/multiround_input_note_2.mp4"
+                    type="video/mp4">
+          </video>
+          <h2 class="subtitle has-text-centered">
+            <b> Language command (round 3)</b>:
+            <i>"Add another vehicle to the left of the Mini driving toward me."</i>
+          </h2>
+        </div>
+      </div>
+    </section> 
+
+  </div>
+</section>
+
+
+<section class="section">
+  <div class="container is-max-desktop">
+    <!-- Abstract. -->
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Abstract</h2>
+        <div class="content has-text-justified">
+          <p>
+            Scene simulation in autonomous driving has gained significant attention because of its huge potential for generating customized data. 
+            However, existing editable scene simulation approaches face limitations in terms of user interaction efficiency, 
+            multi-camera photo-realistic rendering and external digital assets integration. 
+            To address these challenges, this paper introduces <b><i>ChatSim</i></b>, the first system that enables editable photo-realistic 
+            3D driving scene simulations via natural language commands with external digital assets. To enable editing with 
+            high command flexibility, ChatSim leverages a large language model (LLM) agent collaboration framework. 
+            To generate photo-realistic outcomes, ChatSim employs a novel multi-camera neural radiance field method. 
+            Furthermore, to unleash the potential of extensive high-quality digital assets, ChatSim employs a novel 
+            multi-camera lighting estimation method to achieve scene-consistent assets' rendering. Our experiments 
+            on Waymo Open Dataset demonstrate that ChatSim can handle complex language commands and generate 
+            corresponding photo-realistic scene videos.
+          </p>
+          <div class="columns is-centered has-text-centered">
+            <img src="./static/images/teaser.jpg"
+                 alt="Teaser."/>
+          </div>
+        </div>
+        <br>
+        </div>
+      </div>
+    </div>
+    <!--/ Abstract. -->
+
+    <!-- Paper video. -->
+    <!-- <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Video</h2>
+        <div class="publication-video">
+          <iframe src="https://www.youtube.com/embed/MrKrnHhk8IA?rel=0&amp;showinfo=0"
+                  frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+        </div>
+      </div>
+    </div> -->
+    <!--/ Paper video. -->
+  </div>
+</section>
+
+<section class="section">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-centered">
+        <h2 class="title is-3">Framework</h2>
+        <div class="content has-text-justified">
+          <p>
+            To address complex or abstract user commands effectively, <b><i>ChatSim</i></b> adopts a large language model 
+            (LLM)-based multi-agent collaboration framework. The key idea is to exploit multiple LLM agents, 
+            each with a specialized role, to decouple an overall simulation demand into specific editing tasks, 
+            thereby mirroring the task division and execution typically founded in the workflow of a human-operated 
+            company. This workflow offers two key advantages for scene simulation. First, LLM agents' ability to 
+            process human language commands allows for intuitive and dynamic editing of complex driving scenes, 
+            enabling precise adjustments and feedback. Second, the collaboration framework enhances simulation 
+            efficiency and accuracy by distributing specific editing tasks, ensuring improved task completion rates.
+          </p>
+          <br>
+          <div class="columns is-centered has-text-centered">
+            <img src="./static/images/method.jpg"
+                 alt="Method."/>
+          </div>
+        </div>
+        <br>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+
+
+<section class="section">
+  <div class="container is-max-desktop">
+
+    <div class="column is-full-width">
+
+      <div class="content">
+        <h2 class="title is-3">Foreground Rendering</h2>
+        <p>
+          ChatSim adopts a <b>novel multi-camera lighting estimation</b>. With predicted environment lighting, we use 
+          Blender to render the scene-consistent foreground objects.
+        </p>
+        <video id="dollyzoom" autoplay controls muted loop playsinline height="100%">
+          <source src="./static/videos_chatsim/foreground_rendering.mp4"
+                  type="video/mp4">
+        </video>
+      </div>
+
+      <div class="content">
+        <h2 class="title is-3">Background Rendering</h2>
+        <p>
+          ChatSim introduces an innovative multi-camera radiance field approach to tackle the challenges 
+          of <b>inaccurate poses</b> and <b>inconsistent exposures</b> among surrounding cameras in autonomous vehicles. 
+          This method enables the rendering of ultra-wide-angle images that exhibit consistent brightness across the entire image.
+        </p>
+        <video id="dollyzoom" autoplay controls muted loop playsinline height="100%">
+          <source src="./static/videos_chatsim/background_rendering1.mp4"
+                  type="video/mp4">
+        </video>
+        
+        <!-- <div class="columns is-centered">
+          <div class="column is-four-fifths">
+          
+          <video id="dollyzoom" autoplay controls muted loop playsinline height="100%">
+            <source src="./static/videos_chatsim/background_rendering2.mp4"
+                    type="video/mp4">
+          </video>
+          </div>
+        </div> -->
+      </div>
+
+    </div>
+
+  </div>
+</section>
+
+
+<section class="section" id="BibTeX">
+  <div class="container is-max-desktop content">
+    <h2 class="title">BibTeX</h2>
+    We will update bibtex once the Arxiv is ready. Now it refers to our GitHub repo.
+    <br>
+    <pre><code>@misc{wei2023chatsim,
+    author = {Wei, Yuxi and Wang, Zi and Lu, Yifan and Xu, Chenxin and Liu, Changxing and Zhao, Hao and Chen, Siheng and Wang, Yanfeng},
+    title = {Editable Scene Simulation for Autonomous Driving via LLM-Agent Collaboration},
+    year = {2023},
+    howpublished = {\url{https://github.com/yifanlu0227/ChatSim}},
+}</code></pre>
+  </div>
+</section>
+
+
+<footer class="footer">
+  <div class="container">
+    <div class="content has-text-centered">
+      <a class="icon-link" href="https://github.com/yifanlu0227/ChatSim" class="external-link" disabled>
+        <i class="fab fa-github"></i>
+      </a>
+    </div>
+    <div class="columns is-centered">
+      <div class="column is-8">
+        <div class="content">
+          <p>
+            This website modified from <a
+            href="https://github.com/nerfies/nerfies.github.io">nerfies</a> and is licensed under a <a rel="license"
+                                                href="http://creativecommons.org/licenses/by-sa/4.0/">Creative
+            Commons Attribution-ShareAlike 4.0 International License</a>.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
