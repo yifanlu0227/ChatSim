@@ -27,3 +27,8 @@ enabling precise adjustments and feedback. Second, the collaboration framework e
 efficiency and accuracy by distributing specific editing tasks, ensuring improved task completion rates.
 
 ![teaser](./assets/method.jpg)
+
+## Todo
+- [ ] Arxiv paper release 
+- [ ] Code release
+- [ ] Data and model release
