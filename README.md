@@ -1,6 +1,8 @@
 # ChatSim
 ChatSim: Editable Scene Simulation for Autonomous Driving via LLM-Agent Collaboration
 
+[![Watch this repository](https://img.shields.io/github/watchers/yifanlu0227/ChatSim.svg?style=social&label=Watch)](https://github.com/yifanlu0227/ChatSim/subscription) You can stay updated on the latest paper and code by watching this repository. 
+
 ## Abstract
 Scene simulation in autonomous driving has gained significant attention because of its huge potential for generating customized data. 
 However, existing editable scene simulation approaches face limitations in terms of user interaction efficiency, 
@@ -76,3 +78,6 @@ https://github.com/yifanlu0227/ChatSim/assets/45688237/f2a3eabf-6ecb-49d4-8c5d-b
 - [ ] Arxiv paper release 
 - [ ] Code release
 - [ ] Data and model release
+
+
+
