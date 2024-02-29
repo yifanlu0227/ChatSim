@@ -167,3 +167,10 @@ body {
   width: 25%; /* 或者你需要的任何尺寸 */
   height: auto;
 }
+
+.grad-text {
+  font-size: 59px;
+  background: -webkit-linear-gradient(#189d45, #1f6ede);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
