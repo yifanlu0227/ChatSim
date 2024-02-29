@@ -1,0 +1,118 @@
+# Better. config file used in the paper
+exp_name: stage2_multi_camera_hdri_prediction
+
+train_conf:
+  epoch: 300
+  batch_size: 16
+  accelerator: gpu
+  device_num: 1
+  check_val_every_n_epoch: 10
+  log_every_n_steps: 5
+
+dataset:
+  name: HoliCitySDRDataset
+  multicrop_dir: dataset/holicity_crop_multiview
+  skyldr_dir: dataset/holicity_pano_sky_resized_64
+  skymask_dir: dataset/holicity_pano_sky_resized_64_mask
+  skyhdr_dir: dataset/holicity_pano_hdr
+  selected_sample_json: dataset/holicity_meta_info/selected_sample.json
+
+  view_setting: &view_setting
+    view_num: &view_num 3
+    view_dis: &view_dis [0, -45, 45] # in degree. 
+    # waymo setting
+    camera_H: 1280
+    camera_W: 1920
+    focal: 2088.465
+    downsample_for_crop: 4
+
+  # sky pano resolution
+  sky_pano_H: 64
+  sky_pano_W: 256
+
+
+model:
+  name: skypred
+  use_bn: &use_bn true
+  act: &act elu
+
+  fix_modules: ["sky_model"]
+
+  sky_model:
+    core_method: sky_model_enhanced
+    ckpt_path: "YOUR CKPT HERE, ENDED WITH .ckpt"
+
+  latent_predictor:
+    name: avg_multi_view
+    view_setting: *view_setting
+
+    img_encoder:
+      type: EncoderNet
+      args:
+        in_ch: 3
+        layer_channels: [64, 64, 128, 128, 256, 256, 256]
+        strides: [2, 2, 2, 2, 2, 2, 2]
+        block_nums: [2, 2, 2, 2, 2, 2, 2]
+        kernel_size: 3
+        use_bn: *use_bn
+        act: *act
+
+    shared_mlp: 
+      type: MLP
+      args:
+        in_ch: 3072 # flatten
+        layer_channels: [1024, 256]
+        act: *act
+
+    latent_mlp: 
+      type: MLP
+      args:
+        in_ch: 256  
+        layer_channels: [256, 64]
+        act: elu
+
+    peak_dir_mlp: 
+      type: MLP
+      args:
+        in_ch: 256 
+        layer_channels: [3]
+        act: none
+
+    peak_int_mlp: 
+      type: MLP
+      args:
+        in_ch: 256
+        layer_channels: [64, 3]
+        act: elu
+
+
+lr_schedule:
+  init_lr: 0.001
+  decay_per_epoch: 100
+  decay_rate: 0.1
+
+loss:
+  hdr_recon_loss:
+    type: log_encoded_l2_loss
+    args:
+      weight: 1
+
+  ldr_recon_loss: 
+    type: l1_loss
+    args:
+      weight: 0.2
+    
+  peak_int_loss:
+    type: log_encoded_l2_loss
+    args:
+      weight: 0.25
+
+  peak_dir_loss:
+    type: l1_angular_loss
+    args:
+      weight: 0.5
+  
+  latent_loss:
+    type: l1_loss
+    args:
+      weight: 0.005

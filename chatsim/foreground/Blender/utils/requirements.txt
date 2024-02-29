@@ -1,0 +1,8 @@
+fake_bpy_module_latest==20230726
+imageio==2.31.1
+numpy==1.23.5
+opencv_contrib_python==4.8.0.74
+opencv_python==4.7.0.72
+pyquaternion==0.9.9
+PyYAML==6.0.1
+trimesh==3.22.4

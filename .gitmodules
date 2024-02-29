@@ -1,0 +1,6 @@
+[submodule "chatsim/background/mcnerf/External/tiny-cuda-nn"]
+	path = chatsim/background/mcnerf/External/tiny-cuda-nn
+	url = https://github.com/NVlabs/tiny-cuda-nn.git
+[submodule "chatsim/background/mcnerf/External/yaml-cpp"]
+	path = chatsim/background/mcnerf/External/yaml-cpp
+	url = https://github.com/jbeder/yaml-cpp.git

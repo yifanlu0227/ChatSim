@@ -1,0 +1,133 @@
+# config file used in paper
+exp_name: stage1_recon_pano_peak_residual_wb_adjust
+
+train_conf:
+  epoch: 1000
+  batch_size: 8
+  accelerator: gpu
+  device_num: 1
+  check_val_every_n_epoch: 10
+  log_every_n_steps: 5
+
+dataset:
+  name: HDRSkyDataset
+  root_dir: dataset/HDRi_download
+  downsample: 4
+  image_H: 512 # only half is sky
+  image_W: 1024
+  aug_exposure_range: [-2, 0.5]
+  aug_temperature_range: [1.2, 1.3] # The waymo data has a blueish tendency in white balance.
+
+model:
+  name: skymodel_enhanced # with peak residual connection.
+  input_inv_gamma: false
+  input_add_pe: false
+  teacher_prob: 0.5
+  use_bn: &use_bn true
+  act: &act relu
+  sum_lobe_thres: 0.85
+
+  ldr_encoder:
+    type: EncoderNet
+    args:
+      in_ch: 3
+      layer_channels: [64, 128, 128, 256, 256]
+      strides: [2, 2, 2, 2, 2]
+      block_nums: [2, 2, 2, 2, 2]
+      kernel_size: 3
+      use_bn: *use_bn
+      act: *act
+
+  shared_mlp: 
+    type: MLP
+    args:
+      in_ch: 4096 # flatten
+      layer_channels: [1024, 256]
+      act: *act
+
+  latent_mlp: 
+    type: MLP
+    args:
+      in_ch: 256 # flatten
+      layer_channels: [128, 64]
+      act: elu
+
+  latent_mlp_recon: 
+    type: MLP
+    args:
+      in_ch: 64
+      layer_channels: [256, 1024, 4096]
+      act: elu
+
+  peak_dir_mlp: 
+    type: MLP
+    args:
+      in_ch: 256 
+      layer_channels: [3]
+      act: none
+
+  peak_int_mlp: 
+    type: MLP
+    args:
+      in_ch: 256
+      layer_channels: [3]
+      act: elu
+
+  ldr_decoder:
+    type: DecoderNet
+    args:
+      in_ch: 256
+      layer_channels: [256, 128, 128, 64, 3]
+      upstrides: [2, 2, 2, 2, 2] # upsample stride
+      block_nums: [2, 2, 2, 2, 2]
+      kernel_size: 3
+      use_bn: *use_bn
+      act: *act
+    
+  hdr_decoder:
+    type: UNet
+    args:
+      in_ch: 7
+      layer_channels: [64, 128, 128, 256, 256]
+      strides: [2, 2, 2, 2, 2]
+      block_nums: [2, 2, 2, 2, 2]
+
+      up_in_channels: [512, 512, 256, 256, 128]
+      up_layer_channels: [256, 128, 128, 64, 32]
+      up_strides: [2, 2, 2, 2, 2]
+      up_block_nums: [2, 2, 2, 2, 2]
+
+      kernel_size: 3
+      use_bn: *use_bn
+      act: *act
+
+      inject_latent: true
+
+      final_conv_to_RGB: true
+
+
+lr_schedule:
+  init_lr: 0.001
+  decay_per_epoch: 100
+  decay_rate: 0.1
+
+loss:
+  hdr_recon_loss: 
+    type: log_encoded_l2_loss
+    args:
+      weight: 2
+
+  ldr_recon_loss: 
+    type: l1_loss
+    args:
+      weight: 0.2
+    
+  peak_dir_loss: 
+    type: l1_angular_loss
+    args:
+      weight: 1
+
+  peak_int_loss: 
+    type: log_encoded_l2_loss
+    args:
+      weight: 0.1
