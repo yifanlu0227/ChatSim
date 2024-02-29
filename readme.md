@@ -39,12 +39,12 @@ cd chatsim/background/mcnerf
 cd External
 
 wget https://download.pytorch.org/libtorch/cu117/libtorch-cxx11-abi-shared-with-deps-1.13.1%2Bcu117.zip
-unzip ./libtorch-cxx11-abi-shared-with-deps-1.13.1%2Bcu117.zip
-rm ./libtorch-cxx11-abi-shared-with-deps-1.13.1%2Bcu117.zip
+unzip ./libtorch-cxx11-abi-shared-with-deps-1.13.1+cu117.zip
+rm ./libtorch-cxx11-abi-shared-with-deps-1.13.1+cu117.zip
 ```
 
 #### Step 1-3 Compile
-The lowest g++ version is 7.5.0.
+The lowest g++ version is 7.5.0. You may need to add the Libtorch's lib to LIBRARY_PATH and LD_LIBRARY_PATH
 ```shell
 cd ..
 cmake . -B build
@@ -57,8 +57,7 @@ cmake --build build --target main --config RelWithDebInfo -j
 
 ```
 cd chatsim/background/inpainting/Inpaint-Anything
-pip install -e segment_anything
-
+python -m pip install -e segment_anything
 ```
 Download the model checkpoints provided in [Segment Anything](./segment_anything/README.md) and [STTN](./sttn/README.md) (e.g., [sam_vit_h_4b8939.pth](https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth) and [sttn.pth](https://drive.google.com/file/d/1ZAMV8547wmZylKRt5qR_tC5VlosXD4Wv/view)), and put them into `./pretrained_models`. Further, download [OSTrack](https://github.com/botaoye/OSTrack) pretrained model from [here](https://drive.google.com/drive/folders/1ttafo0O5S9DXK2PX0YqPvPrQ-HWJjhSy) (e.g., [vitb_384_mae_ce_32x4_ep300.pth](https://drive.google.com/drive/folders/1XJ70dYB6muatZ1LPQGEhyvouX-sU_wnu)) and put it into `./pytracking/pretrain`. For simplicity, you can also go [here](https://drive.google.com/drive/folders/1ST0aRbDRZGli0r7OVVOQvXwtadMCuWXg?usp=sharing), directly download [pretrained_models](https://drive.google.com/drive/folders/1wpY-upCo4GIW4wVPnlMh_ym779lLIG2A?usp=sharing), put the directory into `./` and get `./pretrained_models`. Additionally, download [pretrain](https://drive.google.com/drive/folders/1SERTIfS7JYyOOmXWujAva4CDQf-W7fjv?usp=sharing), put the directory into `./pytracking` and get `./pytracking/pretrain`.
 
