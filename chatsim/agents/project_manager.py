@@ -63,7 +63,7 @@ class ProjectManager:
         )
         answer = result['choices'][0]['message']['content']
         
-        print(f"{colored('[Top prompt]', on_color='on_light_green', attrs=['bold'])} {user_prompt}\n")
+        print(f"{colored('[User prompt]', color='magenta', attrs=['bold'])} {user_prompt}\n")
         print(f"{colored('[Project Manager] decomposing tasks', color='magenta', attrs=['bold'])} \
                \n{colored('[Raw Response>>>]', attrs=['bold'])} {answer}")
 

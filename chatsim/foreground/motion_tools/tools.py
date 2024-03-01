@@ -331,11 +331,11 @@ def quadratic_bezier(p0, p1, p2, t):
 def hermite_spline_once(P0, P1, T0, T1, num_points=100,agent=1,time=1,input_map=None,post_transform=(False,None),obj=None):
     spline_points = hermite_spline(P0, P1, T0, T1, num_points)
     
-    file_name='work_dirs/vis_gpt_traj/traj_'+ str(agent) + '_' + str(time) + '.png'
-    if post_transform[0]:
-        visualize(inverse_rot_and_trans(spline_points,post_transform[1]),file_name=file_name, input_map=input_map,obj=obj)
-    else:
-        visualize(spline_points,file_name=file_name, input_map=input_map,obj=obj)
+    # file_name='work_dirs/vis_gpt_traj/traj_'+ str(agent) + '_' + str(time) + '.png'
+    # if post_transform[0]:
+    #     visualize(inverse_rot_and_trans(spline_points,post_transform[1]),file_name=file_name, input_map=input_map,obj=obj)
+    # else:
+    #     visualize(spline_points,file_name=file_name, input_map=input_map,obj=obj)
 
     return spline_points
 
@@ -344,11 +344,11 @@ def hermite_spline_twice(P0, P1, PM, T0, T1, TM, num_points=100,agent=1,time=1,i
     spline_points_2 = hermite_spline(PM, P1, TM, T1, num_points)
     spline_points = np.vstack((spline_points_1, spline_points_2))
     
-    file_name='work_dirs/vis_gpt_traj/traj_'+ str(agent) + '_' + str(time) + '.png'
-    if post_transform[0]:
-        visualize(inverse_rot_and_trans(spline_points,post_transform[1]),file_name=file_name, input_map=input_map,obj=obj)
-    else:
-        visualize(spline_points,file_name=file_name, input_map=input_map,obj=obj)
+    # file_name='work_dirs/vis_gpt_traj/traj_'+ str(agent) + '_' + str(time) + '.png'
+    # if post_transform[0]:
+    #     visualize(inverse_rot_and_trans(spline_points,post_transform[1]),file_name=file_name, input_map=input_map,obj=obj)
+    # else:
+    #     visualize(spline_points,file_name=file_name, input_map=input_map,obj=obj)
 
     return spline_points
 
@@ -361,11 +361,11 @@ def hermite_spline_third(P0, P1, PM, PMM1, PMM2,T0, T1, TM, TMM1,TMM2, num_point
     spline_points = np.vstack((spline_points_1, spline_points_2,spline_points_3,spline_points_4))
     # spline_points = np.vstack((spline_points_3))
 
-    file_name='work_dirs/vis_gpt_traj/traj_'+ str(agent) + '_' + str(time) + '.png'
-    if post_transform[0]:
-        visualize(inverse_rot_and_trans(spline_points,post_transform[1]),file_name=file_name, input_map=input_map,obj=obj)
-    else:
-        visualize(spline_points,file_name=file_name, input_map=input_map,obj=obj)
+    # file_name='work_dirs/vis_gpt_traj/traj_'+ str(agent) + '_' + str(time) + '.png'
+    # if post_transform[0]:
+    #     visualize(inverse_rot_and_trans(spline_points,post_transform[1]),file_name=file_name, input_map=input_map,obj=obj)
+    # else:
+    #     visualize(spline_points,file_name=file_name, input_map=input_map,obj=obj)
 
     return spline_points
 
@@ -392,11 +392,12 @@ def transform_gpt_to_trajectory(answer,agent,time,input_map=None,post_transform=
     res = result.read()  
     coordinates = ast.literal_eval(res) 
     # print(coordinates)
-    file_name='work_dirs/vis_gpt_traj/traj_'+ str(agent) + '_' + str(time) + '.png'
-    if post_transform[0]:
-        visualize(inverse_rot_and_trans(coordinates,post_transform[1]),file_name=file_name, input_map=input_map,obj=obj)
-    else:
-        visualize(coordinates,file_name=file_name, input_map=input_map,obj=obj)
+
+    # file_name='work_dirs/vis_gpt_traj/traj_'+ str(agent) + '_' + str(time) + '.png'
+    # if post_transform[0]:
+    #     visualize(inverse_rot_and_trans(coordinates,post_transform[1]),file_name=file_name, input_map=input_map,obj=obj)
+    # else:
+    #     visualize(coordinates,file_name=file_name, input_map=input_map,obj=obj)
 
     return coordinates
 
@@ -412,11 +413,12 @@ def transform_coord_to_trajectory(answer,agent,time,input_map=None,post_transfor
     res = result.read()  
     coordinates = ast.literal_eval(res) 
     # print(coordinates)
-    file_name='work_dirs/vis_gpt_traj/traj_'+ str(agent) + '_' + str(time) + '.png'
-    if post_transform[0]:
-        visualize(inverse_rot_and_trans(coordinates,post_transform[1]),file_name=file_name, input_map=input_map,obj=obj)
-    else:
-        visualize(coordinates,file_name=file_name, input_map=input_map,obj=obj)
+
+    # file_name='work_dirs/vis_gpt_traj/traj_'+ str(agent) + '_' + str(time) + '.png'
+    # if post_transform[0]:
+    #     visualize(inverse_rot_and_trans(coordinates,post_transform[1]),file_name=file_name, input_map=input_map,obj=obj)
+    # else:
+    #     visualize(coordinates,file_name=file_name, input_map=input_map,obj=obj)
 
     return coordinates
 

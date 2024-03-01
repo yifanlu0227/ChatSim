@@ -62,10 +62,8 @@ def vehicle_motion(
     elif high_level_action_direction == "turn right":
         transformed_map_data_dest = filter_right_lane(transformed_map_data)
 
-    if (
-        high_level_action_direction == "turn left"
-        or high_level_action_direction == "turn right"
-    ):
+    if (high_level_action_direction == "turn left"
+        or high_level_action_direction == "turn right"):
         destination_anchor = transformed_map_data_dest["centerline"][::5]
         print(destination_anchor)
         sorted_destination = destination_anchor[
@@ -144,14 +142,14 @@ def vehicle_motion(
     else:
         generated_trajectory = np.array(coordinates[-total_len:])
 
-    file_name = "work_dirs/vis_gpt_traj/traj_" + str(idx) + "_final.png"
+    # file_name = "work_dirs/vis_gpt_traj/traj_" + str(idx) + "_final.png"
 
-    visualize(
-        generated_trajectory,
-        file_name=file_name,
-        input_map=map_data,
-        obj=all_current_vertices,
-    )
+    # visualize(
+    #     generated_trajectory,
+    #     file_name=file_name,
+    #     input_map=map_data,
+    #     obj=all_current_vertices,
+    # )
 
     return generated_trajectory
 

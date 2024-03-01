@@ -1,6 +1,7 @@
 import argparse
 import openai
 from termcolor import colored
+import imageio.v2 as imageio
 import pprint
 from chatsim.agents.asset_select_agent import AssetSelectAgent
 from chatsim.agents.background_rendering_agent import BackgroundRenderingAgent
@@ -63,6 +64,20 @@ class ChatSim:
             "An empty prompt"  # initialization place holder for debugging
         )
 
+    def setup_init_frame(self):
+        """Setup initial frame for ChatSim's reasoning and rendering.
+        """
+        if not os.path.exists(self.scene.init_img_path):
+            print(f"{colored('[Note]', color='red', attrs=['bold'])} ",
+                  f"{colored('can not find init image, rendering it for the first time')}\n")
+            # it will update scene.current_images
+            self.background_rendering_agent.func_render_background(self.scene)
+            # save the initial image
+            imageio.imwrite(self.scene.init_img_path, self.scene.current_images[0])
+        else:
+            self.scene.current_images = [imageio.imread(self.scene.init_img_path)] * self.scene.frames
+
+
     def execute_llms(self, prompt):
         """Entry of ChatSim's reasoning.
         We perform multi-LLM reasoning for the user's prompt
@@ -79,7 +94,7 @@ class ChatSim:
 
         for task in tasks.values():
             print(
-                f"{colored('[Performing Single Prompt]', on_color='on_light_green', attrs=['bold'])} {colored(task, attrs=['bold'])}\n"
+                f"{colored('[Performing Single Prompt]', on_color='on_green', attrs=['bold'])} {colored(task, attrs=['bold'])}\n"
             )
             self.project_manager.dispatch_task(self.scene, task, self.tech_agents)
 
@@ -116,5 +131,6 @@ if __name__ == "__main__":
     config['scene']["simulation_name"] = args.simulation_name
 
     chatsim = ChatSim(config)
+    chatsim.setup_init_frame()
     chatsim.execute_llms(args.prompt)
     chatsim.execute_funcs()

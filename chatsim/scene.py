@@ -90,17 +90,9 @@ class Scene(nn.Module):
 
         self.removed_cars = []  # keys of cars which are removed
         self.added_cars_dict = {} 
-        self.past_operations = []
-
-        if self.init_img_path[-4:] == '.png' or self.init_img_path[-4:] == '.jpg': 
-            self.current_images = [imageio.imread(self.init_img_path)] * self.frames
-        else:
-            self.current_images = []
-            img_files = os.listdir(self.init_img_path)
-            img_files.sort()
-            for single_file in img_files:
-                self.current_images.append(imageio.imread(os.path.join(self.init_img_path, single_file)))
         self.added_cars_count = 0
+        
+        self.past_operations = []
 
         self.all_trajectories = []
 

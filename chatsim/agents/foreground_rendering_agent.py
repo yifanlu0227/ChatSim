@@ -35,6 +35,8 @@ class ForegroundRenderingAgent:
         nerf_output_foler_name = "wide_angle_novel_images" if self.is_wide_angle else "novel_images"
         self.nerf_novel_view_dir = os.path.join(self.nerf_exp_dir, nerf_output_foler_name)
 
+        self.nerf_quiet_render = config["nerf_config"]["nerf_quiet_render"]
+
         # depth estimation
         self.estimate_depth = config['estimate_depth']
         if self.estimate_depth:
@@ -202,13 +204,16 @@ class ForegroundRenderingAgent:
             current_dir = os.getcwd()
             os.chdir(self.f2nerf_dir) # do not generate intermediate file at root directory
             print(f"{colored('[Mc-NeRF]', 'red', attrs=['bold'])} Generating Panorama.")
-            os.system(f'python scripts/run.py \
-                        --config-name={self.f2nerf_config} dataset_name={self.dataset_name} \
-                        case_name={self.scene_name} \
-                        exp_name={self.nerf_exp_name} \
-                        mode=render_panorama_shutter \
-                        is_continue=true \
-                        +work_dir={os.getcwd()}')
+            render_command = f'python scripts/run.py \
+                                    --config-name={self.f2nerf_config} dataset_name={self.dataset_name} \
+                                    case_name={self.scene_name} \
+                                    exp_name={self.nerf_exp_name} \
+                                    mode=render_panorama_shutter \
+                                    is_continue=true \
+                                    +work_dir={os.getcwd()}'
+            if self.nerf_quiet_render:
+                render_command += ' > /dev/null 2>&1'
+            os.system(render_command)
             os.chdir(current_dir)
 
             # an output example

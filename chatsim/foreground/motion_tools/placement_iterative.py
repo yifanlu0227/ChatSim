@@ -383,12 +383,13 @@ def vehicle_placement(input_map,current_vertices,direction,vehicle_mode,distance
 
     # plt.Polygon(xy=[[x1, y1], [x2, y2], [x3, y3], [x4, y4]], color='red', alpha=0.8)
     plt.fill([x1,x2,x3,x4], [y1,y2,y3,y4], 'r',  zorder=10)
-    print('bbox:',[x1,x2,x3,x4],[y1,y2,y3,y4])
+    # print('bbox:',[x1,x2,x3,x4],[y1,y2,y3,y4])
     # plt.fill([0,10,10,0], [0,0,10,10], 'r', zorder=10)
 
-    plt.xlabel("X")
-    plt.ylabel("Y")
-    plt.savefig(str('place')+'.png')
+    # plt.xlabel("X")
+    # plt.ylabel("Y")
+    # plt.savefig(str('place')+'.png')
+    
     return  (xc,yc,theta,xs,ys,xe,ye)
 
 if __name__ == '__main__':

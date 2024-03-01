@@ -23,7 +23,8 @@ class BackgroundRenderingAgent:
         
         nerf_output_foler_name = "wide_angle_novel_images" if self.is_wide_angle else "novel_images"
         self.nerf_novel_view_dir = os.path.join(self.nerf_exp_dir, nerf_output_foler_name)
-
+        self.nerf_quiet_render = config["nerf_config"]["nerf_quiet_render"]
+        
         if self.is_wide_angle:
             assert 'wide' in self.nerf_mode
         else:
@@ -44,14 +45,17 @@ class BackgroundRenderingAgent:
 
             current_dir = os.getcwd()
             os.chdir(self.f2nerf_dir) # do not generate intermediate file at root directory
-            os.system(f'python scripts/run.py \
+            render_command = f'python scripts/run.py \
                                 --config-name={self.f2nerf_config} \
                                 dataset_name={self.dataset_name} \
                                 case_name={self.scene_name} \
                                 exp_name={self.nerf_exp_name} \
                                 mode={self.nerf_mode} \
                                 is_continue=true \
-                                +work_dir={os.getcwd()}')
+                                +work_dir={os.getcwd()}'
+            if self.nerf_quiet_render:
+                render_command += ' > /dev/null 2>&1'
+            os.system(render_command)
             os.chdir(current_dir)
             
             scene.current_images = [] # to be updated
@@ -68,14 +72,17 @@ class BackgroundRenderingAgent:
 
             current_dir = os.getcwd()
             os.chdir(self.f2nerf_dir) # do not generate intermediate file at root directory
-            os.system(f'python scripts/run.py \
+            render_command = f'python scripts/run.py \
                                 --config-name={self.f2nerf_config} \
                                 dataset_name={self.dataset_name} \
                                 case_name={self.scene_name} \
                                 exp_name={self.nerf_exp_name} \
                                 mode={self.nerf_mode} \
                                 is_continue=true \
-                                +work_dir={os.getcwd()}')
+                                +work_dir={os.getcwd()}'
+            if self.nerf_quiet_render:
+                render_command += ' > /dev/null 2>&1'
+            os.system(render_command)
             os.chdir(current_dir)
 
             novel_image = imageio.imread(os.path.join(self.nerf_novel_view_dir, '50000_000.png'))[:, :scene.width]  #wide angle
