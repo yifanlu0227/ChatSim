@@ -18,12 +18,12 @@ def get_parser():
     parser = argparse.ArgumentParser(description="ChatSim argrument parser.")
     parser.add_argument(
         "--config_yaml", "-y", type=str,
-        default="config/waymo-1137.yaml",
+        default="config/waymo-1442.yaml",
         help="path to config file",
     )
     parser.add_argument(
         "--prompt", "-p", type=str,
-        default="add a red car in the scene",
+        default="add a straight driving car in the scene",
         help="language prompt to ChatSim.",
     )
     parser.add_argument(

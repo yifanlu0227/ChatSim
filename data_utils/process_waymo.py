@@ -11,8 +11,8 @@ tf.enable_eager_execution()
 import pickle
 from collections import defaultdict
 from copy import deepcopy
-# import waymo
 import cv2
+import shutil
 import open3d as o3d
 import copy
 
@@ -37,7 +37,7 @@ CAMERAS = {
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--tfrecord_dir', type=str)
-    parser.add_argument('--nerf_data_dir', type=str, default='/path/to/nerf/data/dir')
+    parser.add_argument('--nerf_data_dir', type=str)
     parser.add_argument('-nd', '--no_data', action='store_true')
     parser.add_argument('--frame_nums', type=int, default=60)
     parser.add_argument('--start_frame', type=int, default=0)
@@ -97,113 +97,167 @@ def get_shutter(filename, save_path, start_frame = 0, end_frame = 40):
 
 def main():
     args = parse_args()
-    datadirs = args.tfrecord_dir
+    tfrecord_path = args.tfrecord_dir
     export_data = not args.no_data
-    scene_name = datadirs.split('/')[-1][:-9]
-    nerf_data_dir = os.path.join(args.nerf_data_dir, scene_name)
-    saving_dir = '/'.join(datadirs.split('/')[:-1])
+    scene_name = tfrecord_path.split('/')[-1].split('.')[0]
+    saving_dir = os.path.join(args.nerf_data_dir, scene_name)
 
-    if '.tfrecord' not in datadirs:
-        saving_dir = 1*datadirs
-        datadirs = glob.glob(datadirs+'/*.tfrecord',recursive=True)
-        datadirs = sorted([f for f in datadirs if '.tfrecord' in f])
-        MULTIPLE_DIRS = True
-
-    if not isinstance(datadirs,list):   datadirs = [datadirs]
-    if not os.path.isdir(saving_dir):   os.mkdir(saving_dir)
-    if not os.path.isdir(nerf_data_dir): os.mkdir(nerf_data_dir)
+    if not isinstance(tfrecord_path, list):   
+        tfrecord_path = [tfrecord_path]
+    if not os.path.isdir(saving_dir):   
+        os.mkdir(saving_dir)
 
     isotropic_focal = lambda intrinsic_dict: intrinsic_dict['f_u']==intrinsic_dict['f_v']
 
-    for file_num,file in enumerate(datadirs):
-        if SINGLE_TRACK_INFO_FILE:
-            tracking_info = {}
-        if file_num > 0 and DEBUG:   break
-        file_name = file.split('/')[-1].split('.')[0]
-        print('Processing file ',file_name)
-        if not os.path.isdir(os.path.join(saving_dir, file_name)):   os.mkdir(os.path.join(saving_dir, file_name))
-        if not os.path.isdir(os.path.join(saving_dir,file_name, 'images')):   os.mkdir(os.path.join(saving_dir,file_name, 'images'))
-        if not os.path.isdir(os.path.join(saving_dir, file_name, 'point_cloud')):   os.mkdir(os.path.join(saving_dir, file_name, 'point_cloud'))
-        if not SINGLE_TRACK_INFO_FILE:
-            if not os.path.isdir(os.path.join(saving_dir,file_name, 'tracking')):   os.mkdir(os.path.join(saving_dir,file_name, 'tracking'))
-        dataset = tf.data.TFRecordDataset(file, compression_type='')
-        for f_num, data in enumerate(tqdm(dataset)):
-            frame = open_dataset.Frame()
-            frame.ParseFromString(bytearray(data.numpy()))
-            pose = np.zeros([len(frame.images), 4, 4])
-            im_paths = {}
-            pcd_paths = {}
+    if SINGLE_TRACK_INFO_FILE:
+        tracking_info = {}
+
+    print('Processing file ', tfrecord_path)
+
+    if not os.path.isdir(os.path.join(saving_dir, 'images_all')):   
+        os.mkdir(os.path.join(saving_dir, 'images_all'))
+    if not os.path.isdir(os.path.join(saving_dir, 'images')):   
+        os.mkdir(os.path.join(saving_dir, 'images'))
+    if not os.path.isdir(os.path.join(saving_dir, 'point_cloud')):   
+        os.mkdir(os.path.join(saving_dir, 'point_cloud'))
+    if not SINGLE_TRACK_INFO_FILE:
+        if not os.path.isdir(os.path.join(saving_dir, 'tracking')):   
+            os.mkdir(os.path.join(saving_dir, 'tracking'))
+            
+    dataset = tf.data.TFRecordDataset(tfrecord_path, compression_type='')
+    frames = []
+    for f_num, data in enumerate(tqdm(dataset)):
+        frame = open_dataset.Frame()
+        frames.append(frame)
+        frame.ParseFromString(bytearray(data.numpy()))
+        pose = np.zeros([len(frame.images), 4, 4])
+        im_paths = {}
+        pcd_paths = {}
+        if SAVE_INTRINSIC:
+            intrinsic = np.zeros([len(frame.images),9])
+        extrinsic = np.zeros_like(pose)
+        width,height,camera_labels = np.zeros([len(frame.images)]),np.zeros([len(frame.images)]),defaultdict(dict)
+        for im in frame.images:
+            saving_name = os.path.join(saving_dir, 'images_all','%03d_%s.png'%(f_num,open_dataset.CameraName.Name.Name(im.name)))
+            if not DEBUG and export_data:
+                im_array = tf.image.decode_jpeg(im.image).numpy()
+                imageio.imwrite(saving_name, im_array, compress_level=3)
+            pose[im.name-1, :, :] = np.reshape(im.pose.transform, [4, 4])
+            im_paths[im.name] = saving_name
+            extrinsic[im.name-1, :, :] = np.reshape(frame.context.camera_calibrations[im.name-1].extrinsic.transform, [4, 4])
             if SAVE_INTRINSIC:
-                intrinsic = np.zeros([len(frame.images),9])
-            extrinsic = np.zeros_like(pose)
-            width,height,camera_labels = np.zeros([len(frame.images)]),np.zeros([len(frame.images)]),defaultdict(dict)
-            for im in frame.images:
-                saving_name = os.path.join(saving_dir,file_name, 'images','%03d_%s.png'%(f_num,open_dataset.CameraName.Name.Name(im.name)))
-                if not DEBUG and export_data:
-                    im_array = tf.image.decode_jpeg(im.image).numpy()
-                    imageio.imwrite(saving_name, im_array, compress_level=3)
-                pose[im.name-1, :, :] = np.reshape(im.pose.transform, [4, 4])
-                im_paths[im.name] = saving_name
-                extrinsic[im.name-1, :, :] = np.reshape(frame.context.camera_calibrations[im.name-1].extrinsic.transform, [4, 4])
-                if SAVE_INTRINSIC:
-                    intrinsic[im.name-1, :] = frame.context.camera_calibrations[im.name-1].intrinsic
-                    assert isotropic_focal(read_intrinsic(intrinsic[im.name-1, :])),'Unexpected difference between f_u and f_v.'
-                width[im.name-1] = frame.context.camera_calibrations[im.name-1].width
-                height[im.name-1] = frame.context.camera_calibrations[im.name-1].height
-                for obj_label in frame.projected_lidar_labels[im.name-1].labels:
-                    camera_labels[im.name][obj_label.id.replace('_'+open_dataset.CameraName.Name.Name(im.name),'')] = extract_label_fields(obj_label,2)
-            # Extract point cloud data from stored range images
-            laser_calib = np.zeros([len(frame.lasers), 4,4])
-            if export_data:
-                (range_images, camera_projections, range_image_top_pose) = \
-                    frame_utils.parse_range_image_and_camera_projection(frame)
-                points, cp_points = frame_utils.convert_range_image_to_point_cloud(frame,
-                                                                                range_images,
-                                                                                camera_projections,
-                                                                                range_image_top_pose)
-            else:
-                points =np.empty([len(frame.lasers), 1])
+                intrinsic[im.name-1, :] = frame.context.camera_calibrations[im.name-1].intrinsic
+                assert isotropic_focal(read_intrinsic(intrinsic[im.name-1, :])),'Unexpected difference between f_u and f_v.'
+            width[im.name-1] = frame.context.camera_calibrations[im.name-1].width
+            height[im.name-1] = frame.context.camera_calibrations[im.name-1].height
+            for obj_label in frame.projected_lidar_labels[im.name-1].labels:
+                camera_labels[im.name][obj_label.id.replace('_'+open_dataset.CameraName.Name.Name(im.name),'')] = extract_label_fields(obj_label,2)
+        # Extract point cloud data from stored range images
+        laser_calib = np.zeros([len(frame.lasers), 4,4])
+        if export_data:
+            (range_images, camera_projections, seg_labels, range_image_top_pose) = \
+                frame_utils.parse_range_image_and_camera_projection(frame)
+            points, cp_points = frame_utils.convert_range_image_to_point_cloud(frame,
+                                                                            range_images,
+                                                                            camera_projections,
+                                                                            range_image_top_pose)
+        else:
+            points = np.empty([len(frame.lasers), 1])
 
-            laser_mapping = {}
-            for (laser, pts) in zip(frame.lasers, points):
-                saving_name = os.path.join(saving_dir, file_name, 'point_cloud', '%03d_%s.ply' % (f_num, open_dataset.LaserName.Name.Name(laser.name)))
-                if export_data:
-                    pcd = o3d.geometry.PointCloud()
-                    pcd.points = o3d.utility.Vector3dVector(pts)
-                    o3d.io.write_point_cloud(saving_name, pcd)
-                calib_id = int(np.where(np.array([cali.name for cali in frame.context.laser_calibrations[:5]]) == laser.name)[0])
-                laser_calib[laser.name-1, :, :] = np.reshape(frame.context.laser_calibrations[calib_id].extrinsic.transform, [4, 4])
-                pcd_paths[laser.name] = saving_name
-                laser_mapping.update({open_dataset.LaserName.Name.Name(laser.name): calib_id})
+        laser_mapping = {}
+        for (laser, pts) in zip(frame.lasers, points):
+            saving_name = os.path.join(saving_dir, 'point_cloud', '%03d_%s.ply' % (f_num, open_dataset.LaserName.Name.Name(laser.name)))
+            if export_data and f_num == 0:
+                pcd = o3d.geometry.PointCloud()
+                pcd.points = o3d.utility.Vector3dVector(pts)
+                o3d.io.write_point_cloud(saving_name, pcd)
+            calib_id = int(np.where(np.array([cali.name for cali in frame.context.laser_calibrations[:5]]) == laser.name)[0])
+            laser_calib[laser.name-1, :, :] = np.reshape(frame.context.laser_calibrations[calib_id].extrinsic.transform, [4, 4])
+            pcd_paths[laser.name] = saving_name
+            laser_mapping.update({open_dataset.LaserName.Name.Name(laser.name): calib_id})
 
-            if 'intrinsic' in tracking_info:
-                assert np.all(tracking_info['intrinsic']==intrinsic) and np.all(tracking_info['width']==width) and np.all(tracking_info['height']==height)
-            else:
-                tracking_info['intrinsic'],tracking_info['width'],tracking_info['height'] = intrinsic,width,height
-            dict_2_save = {'per_cam_veh_pose':pose,'cam2veh':extrinsic,'im_paths':im_paths,'width':width,'height':height,
-                        'veh2laser':laser_calib, 'pcd_paths': pcd_paths, 'focal': intrinsic[:, 0]}
-            if SAVE_INTRINSIC and SINGLE_TRACK_INFO_FILE:
-                dict_2_save['intrinsic'] = intrinsic
-            lidar_labels = {}
-            for obj_label in frame.laser_labels:
-                lidar_labels[obj_label.id] = extract_label_fields(obj_label,3)
-            dict_2_save['lidar_labels'] = lidar_labels
-            dict_2_save['camera_labels'] = camera_labels
-            dict_2_save['veh_pose'] = np.reshape(frame.pose.transform,[4,4])
-            dict_2_save['timestamp'] = frame.timestamp_micros
-            if SINGLE_TRACK_INFO_FILE:
-                tracking_info[(file_num,f_num)] = deepcopy(dict_2_save)
-            else:
-                with open(os.path.join(saving_dir,file_name, 'tracking','%03d.pkl'%(f_num)),'wb') as f:
-                    pickle.dump(dict_2_save,f)
+        if 'intrinsic' in tracking_info:
+            assert np.all(tracking_info['intrinsic']==intrinsic) and np.all(tracking_info['width']==width) and np.all(tracking_info['height']==height)
+        else:
+            tracking_info['intrinsic'],tracking_info['width'],tracking_info['height'] = intrinsic,width,height
+        dict_2_save = {'per_cam_veh_pose':pose,'cam2veh':extrinsic,'im_paths':im_paths,'width':width,'height':height,
+                    'veh2laser':laser_calib, 'pcd_paths': pcd_paths, 'focal': intrinsic[:, 0]}
+        if SAVE_INTRINSIC and SINGLE_TRACK_INFO_FILE:
+            dict_2_save['intrinsic'] = intrinsic
+        lidar_labels = {}
+        for obj_label in frame.laser_labels:
+            lidar_labels[obj_label.id] = extract_label_fields(obj_label,3)
 
-        if SINGLE_TRACK_INFO_FILE:
-            with open(os.path.join(saving_dir, file_name, 'tracking_info%s.pkl'%('_debug' if DEBUG else '')), 'wb') as f:
-                pickle.dump(tracking_info, f)
+        dict_2_save['lidar_labels'] = lidar_labels
+        dict_2_save['camera_labels'] = camera_labels
+        dict_2_save['veh_pose'] = np.reshape(frame.pose.transform,[4,4])
+        dict_2_save['timestamp'] = frame.timestamp_micros
 
+        tracking_info[(0,f_num)] = deepcopy(dict_2_save)
 
-    print("Generating poses_bounds_waymo.npy")
-    with open(os.path.join(saving_dir, scene_name) + '/tracking_info.pkl', 'rb') as file:
+    with open(os.path.join(saving_dir, 'tracking_info%s.pkl'%('_debug' if DEBUG else '')), 'wb') as f:
+        pickle.dump(tracking_info, f)
+
+    transform = np.reshape(np.array(frames[args.start_frame].pose.transform), [4, 4])
+    transform = np.linalg.inv(transform)
+    road_edges = []
+    lanes = []   
+    for i in range(len(frames[0].map_features)):
+        if len(frames[0].map_features[i].lane.polyline) > 0:
+            curr_lane = []
+            for node in frames[0].map_features[i].lane.polyline:
+                node_position = np.ones(4)
+                node_position[0] = node.x
+                node_position[1] = node.y
+                node_position[2] = node.z
+                curr_lane.append(node_position)
+            curr_lane = np.stack(curr_lane)
+            curr_lane = np.transpose(np.matmul(transform, np.transpose(curr_lane)))[:, 0:3]
+            lanes.append(curr_lane)
+        
+        if len(frames[0].map_features[i].road_edge.polyline) > 0:
+            curr_edge = []
+            for node in frames[0].map_features[i].road_edge.polyline:
+                node_position = np.ones(4)
+                node_position[0] = node.x
+                node_position[1] = node.y
+                node_position[2] = node.z
+                curr_edge.append(node_position)
+            curr_edge = np.stack(curr_edge)
+            curr_edge = np.transpose(np.matmul(transform, np.transpose(curr_edge)))[:, 0:3]
+            road_edges.append(curr_edge)
+
+    x_min = -30
+    x_max = 50
+    y_min = -20
+    y_max = 20
+    cropped_road_edges = []
+    for edge in road_edges:
+        new_road_edge = []
+        for i in range(edge.shape[0]):
+            if edge[i,0] < x_min or edge[i,0] > x_max or edge[i,1] < y_min or edge[i,1] > y_max:
+                continue
+            new_road_edge.append(edge[i])
+        if len(new_road_edge) > 0:
+            new_road_edge = np.stack(new_road_edge)
+            cropped_road_edges.append(new_road_edge)
+
+    cropped_lanes = []
+    for lane in lanes:
+        new_lane = []
+        for i in range(lane.shape[0]):
+            if lane[i,0] < x_min or lane[i,0] > x_max or lane[i,1] < y_min or lane[i,1] > y_max:
+                continue
+            new_lane.append(lane[i])
+        if len(new_lane) > 0:
+            new_lane = np.stack(new_lane)
+            cropped_lanes.append(new_lane)
+    output_map = {"centerline":cropped_lanes,"boundary":cropped_road_edges}
+
+    with open(os.path.join(saving_dir, 'map.pkl'), 'wb') as f:
+        pickle.dump(output_map, f)
+                
+    with open(os.path.join(saving_dir, 'tracking_info.pkl'), 'rb') as file:
         data = pickle.load(file)
 
     all_veh_poses_per_cam = []
@@ -270,7 +324,7 @@ def main():
         extrinsics.append(extrinsics_[:, None, ...])
 
     all_vehi2veh0 = np.stack(all_vehi2veh0)
-    np.save(nerf_data_dir + '/vehi2veh0.npy', all_vehi2veh0)
+    np.save(os.path.join(saving_dir, "vehi2veh0.npy"), all_vehi2veh0)
 
     extrinsics = np.concatenate(extrinsics, axis=1)
 
@@ -285,55 +339,38 @@ def main():
     poses_bounds[:, 15] = 0.1
     poses_bounds[:, 16] = 600.
 
-    np.save(nerf_data_dir + '/poses_bounds_waymo.npy', poses_bounds)
+    np.save(os.path.join(saving_dir, 'poses_bounds_waymo.npy'), poses_bounds)
 
     poses_hwf = poses_bounds[:, :15].reshape(-1, 3, 5)
     poses = poses_hwf[:, :3, :4]
     hwf = poses_hwf[:, :3, 4]
 
-    ########################## llff to nerf coordinates ###########################################
-    # print("Converting LLFF coordinates to NeRF coordinates")
-    # poses = np.concatenate([poses[:, :, 1:2], -poses[:, :, 0:1], poses[:, :, 2:]], 2)
-    # bounds = poses_bounds[:, 15: 17]
-    # n_poses = len(poses)
-    # intri = np.zeros([n_poses, 3, 3])
-    # intri[:, :3, :3] = np.eye(3)
-    # intri[:, 0, 0] = hwf[:, 2] 
-    # intri[:, 1, 1] = hwf[:, 2] 
-    # intri[:, 0, 2] = hwf[:, 1] * .5 
-    # intri[:, 1, 2] = hwf[:, 0] * .5
-
-    # data = np.concatenate([
-    #     poses.reshape(n_poses, -1),
-    #     intri.reshape(n_poses, -1),
-    #     np.zeros([n_poses, 4]),
-    #     bounds.reshape(n_poses, -1)
-    # ], -1)
-
-    # data = np.ascontiguousarray(np.array(data).astype(np.float64))
-    # np.save(os.path.join(nerf_data_dir, 'cams_meta.npy'), data)
 
     ########################## Getting shutter times from tfrecord ###########################################
     print("Getting Shutter Times from tfrecord files")
-    save_path = os.path.join(args.nerf_data_dir, args.tfrecord_dir.split('/')[-1].rstrip(".tfrecord") ,'shutters')
+    save_path = os.path.join(saving_dir ,'shutters')
     get_shutter(args.tfrecord_dir, save_path, start_frame=args.start_frame, end_frame=args.start_frame + args.frame_nums)
 
-    print("Moving Images and Point cloud")
-    imgs_path = os.path.join(saving_dir, scene_name) + '/images'
-    new_img_path = nerf_data_dir + '/images'
-    if not os.path.isdir(new_img_path): os.mkdir(new_img_path)
+    # rename image files
     for save_idx, img_index in enumerate(range(args.start_frame, args.start_frame + args.frame_nums)):
         for key, value in CAMERAS.items():
-            img_path = os.path.join(imgs_path, '%03d_%s.png'%(img_index, key))
-            img = cv2.imread(img_path)
-            img = cv2.resize(img, (1920, 1280))
-            cv2.imwrite(os.path.join(new_img_path, '%03d.png'%(save_idx*len(CAMERAS) + value)), img)
+            img_path_from = os.path.join(saving_dir, "images_all", '%03d_%s.png'%(img_index, key))
+            img_path_to = os.path.join(saving_dir, "images", '%03d.png'%(save_idx*len(CAMERAS) + value))
+            shutil.copyfile(img_path_from, img_path_to)
 
-    pc_path = os.path.join(saving_dir, scene_name) + '/point_cloud'
-    os.system('cp -r {} {}'.format(pc_path, nerf_data_dir))
+    valid_vehicles = data[(0,args.start_frame)]['camera_labels'][1].keys()
+    valid_vehicles = [key  for key in valid_vehicles if data[(0,args.start_frame)]['camera_labels'][1][key]['type'] == 1]
 
-    tracking_info_path = os.path.join(saving_dir, scene_name) + '/tracking_info.pkl'
-    os.system('cp {} {}'.format(tracking_info_path, nerf_data_dir))
+    bboxes_dict = {}
+
+    for i,key in enumerate(valid_vehicles):
+        bboxes_dict[str(i)] = data[(0,args.start_frame)]['lidar_labels'][key]
+        bboxes_dict[str(i)]['cx'] = bboxes_dict[str(i)].pop('c_x')
+        bboxes_dict[str(i)]['cy'] = bboxes_dict[str(i)].pop('c_y')
+        bboxes_dict[str(i)]['cz'] = bboxes_dict[str(i)].pop('c_z')
+    
+    np.save(os.path.join(saving_dir, '3d_boxes.npy'), bboxes_dict)
+
 
 
 if __name__ == '__main__':

@@ -328,7 +328,7 @@ def hermite_spline(P0, P1, T0, T1, num_points=100):
 def quadratic_bezier(p0, p1, p2, t):
     return (1 - t)**2 * p0 + 2 * (1 - t) * t * p1 + t**2 * p2
 
-def hermite_spline_once(P0, P1, T0, T1, num_points=100,agent=1,time=1,input_map=None,post_transform=(False,None),obj=None):
+def hermite_spline_once(P0, P1, T0, T1, num_points=100):
     spline_points = hermite_spline(P0, P1, T0, T1, num_points)
     
     # file_name='work_dirs/vis_gpt_traj/traj_'+ str(agent) + '_' + str(time) + '.png'
@@ -339,7 +339,7 @@ def hermite_spline_once(P0, P1, T0, T1, num_points=100,agent=1,time=1,input_map=
 
     return spline_points
 
-def hermite_spline_twice(P0, P1, PM, T0, T1, TM, num_points=100,agent=1,time=1,input_map=None,post_transform=(False,None),obj=None):
+def hermite_spline_twice(P0, P1, PM, T0, T1, TM, num_points=100):
     spline_points_1 = hermite_spline(P0, PM, T0, TM, num_points)
     spline_points_2 = hermite_spline(PM, P1, TM, T1, num_points)
     spline_points = np.vstack((spline_points_1, spline_points_2))
@@ -352,7 +352,7 @@ def hermite_spline_twice(P0, P1, PM, T0, T1, TM, num_points=100,agent=1,time=1,i
 
     return spline_points
 
-def hermite_spline_third(P0, P1, PM, PMM1, PMM2,T0, T1, TM, TMM1,TMM2, num_points=100,agent=1,time=1,input_map=None,post_transform=(False,None),obj=None):
+def hermite_spline_third(P0, P1, PM, PMM1, PMM2,T0, T1, TM, TMM1,TMM2, num_points=100,time=1,input_map=None,post_transform=(False,None),obj=None):
     spline_points_1 = hermite_spline(P0, PMM1, T0, TMM1, num_points)
     spline_points_2 = hermite_spline(PMM1, PM, TMM1, TM, num_points)
     spline_points_3 = hermite_spline(PM, PMM2, TM, TMM2, num_points)
@@ -370,14 +370,14 @@ def hermite_spline_third(P0, P1, PM, PMM1, PMM2,T0, T1, TM, TMM1,TMM2, num_point
     return spline_points
 
 def cubic_bezier(p0, p1, p2, p3, t):
-    """计算三次Bezier曲线的一个点。"""
+
     return ((1-t)**3 * p0 +
             3 * (1-t)**2 * t * p1 +
             3 * (1-t) * t**2 * p2 +
             t**3 * p3)
 
 def compute_bezier_points(p0, p1, p2, p3, num_points=100):
-    """计算整个三次Bezier曲线的点。"""
+
     return np.array([cubic_bezier(p0, p1, p2, p3, t) for t in np.linspace(0, 1, num_points)])
 
 def transform_gpt_to_trajectory(answer,agent,time,input_map=None,post_transform=(False,None),obj=None):
@@ -391,13 +391,7 @@ def transform_gpt_to_trajectory(answer,agent,time,input_map=None,post_transform=
     result = os.popen(python_command)  
     res = result.read()  
     coordinates = ast.literal_eval(res) 
-    # print(coordinates)
 
-    # file_name='work_dirs/vis_gpt_traj/traj_'+ str(agent) + '_' + str(time) + '.png'
-    # if post_transform[0]:
-    #     visualize(inverse_rot_and_trans(coordinates,post_transform[1]),file_name=file_name, input_map=input_map,obj=obj)
-    # else:
-    #     visualize(coordinates,file_name=file_name, input_map=input_map,obj=obj)
 
     return coordinates
 
@@ -412,18 +406,12 @@ def transform_coord_to_trajectory(answer,agent,time,input_map=None,post_transfor
     result = os.popen(python_command)  
     res = result.read()  
     coordinates = ast.literal_eval(res) 
-    # print(coordinates)
-
-    # file_name='work_dirs/vis_gpt_traj/traj_'+ str(agent) + '_' + str(time) + '.png'
-    # if post_transform[0]:
-    #     visualize(inverse_rot_and_trans(coordinates,post_transform[1]),file_name=file_name, input_map=input_map,obj=obj)
-    # else:
-    #     visualize(coordinates,file_name=file_name, input_map=input_map,obj=obj)
+    
 
     return coordinates
 
 def project_polygon_onto_axis(vertices, axis):
-    """将多边形投影到指定轴上"""
+    
     min_val = max_val = np.dot(vertices[0], axis)
     for vertex in vertices[1:]:
         projection = np.dot(vertex, axis)
@@ -432,27 +420,27 @@ def project_polygon_onto_axis(vertices, axis):
     return min_val, max_val
 
 def is_projection_overlap(proj1, proj2):
-    """检查两个投影是否重叠"""
+    
     return max(proj1[0], proj2[0]) <= min(proj1[1], proj2[1])
 
 def is_rectangles_overlap(rect1, rect2):
-    """检查两个矩形是否重叠"""
+    
     for i in range(4):
-        # 计算当前矩形的一条边
+        
         edge = rect1[i] - rect1[(i + 1) % 4]
-        # 计算法线（垂直方向）
+        
         axis = np.array([-edge[1], edge[0]])
         axis /= np.linalg.norm(axis)
         
-        # 在法线方向上投影两个矩形
+        
         proj1 = project_polygon_onto_axis(rect1, axis)
         proj2 = project_polygon_onto_axis(rect2, axis)
         
-        # 检查投影是否重叠
+        
         if not is_projection_overlap(proj1, proj2):
             return False
     
-    # 检查rect2的边
+    
     for i in range(4):
         edge = rect2[i] - rect2[(i + 1) % 4]
         axis = np.array([-edge[1], edge[0]])
@@ -467,40 +455,30 @@ def is_rectangles_overlap(rect1, rect2):
     return True
 
 def calculate_car_corners(trajectory, car_length=4.5, car_width=2):
-    """
-    根据车辆中心点轨迹计算车辆四个角点的轨迹。
-    输入:
-    - trajectory: 车辆中心点的轨迹，大小为(T, 2)
-    - car_length: 车辆长度
-    - car_width: 车辆宽度
     
-    输出:
-    - corners_trajectory: 车辆四个角点的轨迹，大小为(T, 4, 2)
-    """
     T = trajectory.shape[0]
     corners_trajectory = np.zeros((T, 4, 2))
     
     for i in range(1, T):
-        # 计算朝向（即速度方向）
+        
         direction = trajectory[i] - trajectory[i - 1]
         direction /= np.linalg.norm(direction)
         
-        # 计算垂直于朝向的向量
+        
         perpendicular = np.array([-direction[1], direction[0]])
         
-        # 计算四个角点相对于中心点的位置
+        
         front = 0.5 * car_length * direction
         back = -0.5 * car_length * direction
         left = 0.5 * car_width * perpendicular
         right = -0.5 * car_width * perpendicular
         
-        # 计算四个角点的绝对位置
+        
         corners_trajectory[i, 0] = trajectory[i] + front + left
         corners_trajectory[i, 1] = trajectory[i] + front + right
         corners_trajectory[i, 2] = trajectory[i] + back + right
         corners_trajectory[i, 3] = trajectory[i] + back + left
         
-    # 第一个时间步使用第二个时间步的朝向
     corners_trajectory[0] = corners_trajectory[1]
     
     return corners_trajectory
@@ -518,65 +496,57 @@ def is_tailgating(trajectory1,trajectory2):
     angle2 = np.arccos(np.clip(np.dot(-direction, speed_direction2), -1.0, 1.0))
     
     if angle1 < threshold and angle2 < threshold:
-        return True  # 发生追尾
+        return True  
     else:
         return False
 
 def accerlate(trajectory, speed_increase=1.1):
-    # 计算速度
+    
     speeds = np.diff(trajectory, axis=0)
     
-    # 增加速度
+    
     speeds *= speed_increase
     
-    # 更新位置
+    
     new_trajectory = np.cumsum(np.vstack([trajectory[0], speeds]), axis=0)
     return new_trajectory
 
 def deaccerlate(trajectory, speed_decrease=1.1):
-    # 计算速度
+    
     speeds = np.diff(trajectory, axis=0)
     
-    # 增加速度
+    
     speeds *= speed_decrease
     
-    # 更新位置
+   
     new_trajectory = np.cumsum(np.vstack([trajectory[0], speeds]), axis=0)
     return new_trajectory
 
 def calculate_speed_increase(front_car_traj, rear_car_traj, safe_distance=7):
-    """
-    计算为了避免追尾，前车需要增加的最小速度比率。
     
-    :param front_car_traj: 前车的轨迹，大小为(T, 2)
-    :param rear_car_traj: 后车的轨迹，大小为(T, 2)
-    :param safe_distance: 安全距离
-    :return: 速度增加的比率
-    """
-    # 计算前后车之间的距离
     distances = np.linalg.norm(rear_car_traj - front_car_traj, axis=1)
     
-    # 计算前后车速度
+    
     front_car_speeds = np.linalg.norm(np.diff(front_car_traj, axis=0), axis=1)
     rear_car_speeds = np.linalg.norm(np.diff(rear_car_traj, axis=0), axis=1)
     
-    # 计算相对速度
+    
     relative_speeds = rear_car_speeds - front_car_speeds
     
-    # 计算时间到碰撞
+    
     time_to_collision = (distances[1:] - safe_distance) / relative_speeds
     
-    # 找到最短时间到碰撞
+    
     min_time_to_collision = np.min(time_to_collision[relative_speeds > 0])
     
-    # 如果已经处于安全状态，不需要增加速度
+    
     if np.any(distances > safe_distance) or min_time_to_collision > 0:
         return 1.0
     
-    # 计算需要的速度增加比率
+    
     speed_increase = 1 + (safe_distance - distances[1:]) / (relative_speeds * min_time_to_collision)
     
-    # 返回最大的速度增加比率，确保在整个轨迹上都是安全的
+    
     return np.max(speed_increase)
 
 def check_collision_and_revise_waste(all_trajectory):
@@ -593,15 +563,15 @@ def check_collision_and_revise_waste(all_trajectory):
     for j in range(1,N):
         for t in range(T):
             if is_rectangles_overlap(all_corners_trajectory[0,t],all_corners_trajectory[j,t]):
-                # 判断是否追尾                    
+                                 
                 trajectory1 = all_trajectory[0]
                 trajectory2 = all_trajectory[j]
                 speed1 = np.linalg.norm(np.diff(trajectory1, axis=0))
                 speed2 = np.linalg.norm(np.diff(trajectory2, axis=0))
-                if is_tailgating(trajectory1,trajectory2) and speed1[t-1] < speed2[t-1]: # 追尾且是前车，需要加速
+                if is_tailgating(trajectory1,trajectory2) and speed1[t-1] < speed2[t-1]:
                     all_trajectory[0] = accerlate(all_trajectory[0],calculate_speed_increase(trajectory1,trajectory2))
                     break
-                else: # 其他情况都减速
+                else: 
                     collision_point = trajectory1[t]
                     for t_safe in range(t+1,T):
                         if np.linalg.norm(trajectory2[t_safe] - collision_point) > safe_distance:
@@ -627,14 +597,14 @@ def check_collision_and_revise(all_trajectory):
     for j in range(1,N):
         for t in range(T):
             if is_rectangles_overlap(all_corners_trajectory[0,t],all_corners_trajectory[j,t]):
-                # 判断是否追尾                    
+                                 
                 trajectory1 = all_trajectory[0]
                 trajectory2 = all_trajectory[j]
                 speed1 = np.linalg.norm(np.diff(trajectory1, axis=0))
                 speed2 = np.linalg.norm(np.diff(trajectory2, axis=0))
-                if is_tailgating(trajectory1,trajectory2) and speed1[t-1] < speed2[t-1]: # 追尾且是前车，需要加速
+                if is_tailgating(trajectory1,trajectory2) and speed1[t-1] < speed2[t-1]: 
                     return 'accerlate'
-                else: # 其他情况都减速
+                else: 
                     return 'deaccerlate'
     
     return 'no revise'
@@ -652,13 +622,13 @@ def visualize(input,file_name,input_map=None,multi_traj=False,obj=None):
             if input[i][0] is not None:
                 x_vals, y_vals = input[i][:,0],input[i][:,1]
                 plt.plot(x_vals, y_vals, 'b-', color=colors[i], label=f"Trajectory{i}",lw=5)
-                # plt.title("Car Trajectory for Turning Left on a Crossroad")
+                
     else:
         x_vals, y_vals = zip(*input)
         plt.cla()
         plt.figure(figsize=(10, 6))
         plt.plot(x_vals, y_vals, 'b-', label="Trajectory",lw=5)
-        # plt.title("Car Trajectory for Turning Left on a Crossroad")
+        
         plt.xlabel("X (Front of the car) [meters]")
         plt.ylabel("Y (Right of the car) [meters]")
 
@@ -667,7 +637,7 @@ def visualize(input,file_name,input_map=None,multi_traj=False,obj=None):
         boundary = input_map['boundary']
         for i in range(len(centerline)):
             lane_vec = centerline[i]
-            # if lane_vec[-1] == 0:
+            
             plt.plot([lane_vec[0], lane_vec[2]], [lane_vec[1], lane_vec[3]],color="green",linewidth=1)
             plt.scatter([lane_vec[0], lane_vec[2]], [lane_vec[1], lane_vec[3]], color='black',s=1)
 
@@ -692,7 +662,7 @@ def visualize_placement(input_position,input_map):
     plt.cla()
 
     for i in range(len(centerline)):
-        # if centerline[i,-1] == 1:
+        
         lane_vec = centerline[i]
         plt.plot([lane_vec[0], lane_vec[2]], [lane_vec[1], lane_vec[3]],color="green",linewidth=1)
         plt.scatter([lane_vec[0], lane_vec[2]], [lane_vec[1], lane_vec[3]], color='black',s=1)
@@ -715,14 +685,7 @@ def visualize_placement(input_position,input_map):
             x3, y3 = xc + w * np.cos(theta) - l * np.sin(theta), yc - l * np.cos(theta) - w * np.sin(theta)
             x4, y4 = xc - w * np.cos(theta) - l * np.sin(theta), yc - l * np.cos(theta) + w * np.sin(theta)
 
-            # plt.Polygon(xy=[[x1, y1], [x2, y2], [x3, y3], [x4, y4]], color='red', alpha=0.8)
-            plt.fill([x1,x2,x3,x4], [y1,y2,y3,y4], 'r',  zorder=10)
-            # print('bbox:',[x1,x2,x3,x4],[y1,y2,y3,y4])
-        # plt.fill([0,10,10,0], [0,0,10,10], 'r', zorder=10)
-
-    plt.xlabel("X")
-    plt.ylabel("Y")
-    plt.savefig(str('place')+'.png')
+            
 
 def find_closest_centerline(transformed_map_data,current_destination):
     thres = 0.3

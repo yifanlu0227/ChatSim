@@ -32,28 +32,28 @@ import random
 def vehicle_motion(
     map_data,
     all_current_vertices,
-    current_trajectory=[],
     placement_result=[],
-    v_init=[],
     high_level_action_direction=[],
     high_level_action_speed=[],
     dt=0.4,
     total_len=10,
-    idx=1,
 ):
 
     if placement_result[0] is None:
         return (None, "no placement")
 
-    if idx > 0:
-        current_position = placement_result
-        transformed_map_data = rot_and_trans(map_data, current_position)
-        transformed_all_current_vertices = rot_and_trans_bbox(
-            all_current_vertices, current_position
-        )
+
+    current_position = placement_result
+    transformed_map_data = rot_and_trans(map_data, current_position)
+    transformed_all_current_vertices = rot_and_trans_bbox(
+        all_current_vertices, current_position
+    )
+    if high_level_action_speed == 'slow':
+        v_init = random.randint(3,10)
+    elif high_level_action_speed == 'fast':
+        v_init = random.randint(10,25)
     else:
-        transformed_map_data = map_data.copy()
-        transformed_all_current_vertices = all_current_vertices.copy()
+        v_init = random.randint(3,25)
 
     transformed_map_data = filter_forward_lane(transformed_map_data)
 
@@ -81,12 +81,9 @@ def vehicle_motion(
         sorted_destination = (sorted_destination[0:2] + sorted_destination[2:4]) / 2
 
 
-    attempts = 0
-    success = False
-
     start = np.array([0, 0])
     end = np.array([sorted_destination[0], sorted_destination[1]])
-    Vs = np.array([v_init, 0])  # 可以理解为速度，这里是水平方向
+    Vs = np.array([v_init, 0])  
 
     Ve = (
         v_init
@@ -100,11 +97,6 @@ def vehicle_motion(
         end,
         Vs,
         Ve,
-        agent=idx,
-        time=1,
-        input_map=map_data,
-        post_transform=(idx > 0, current_position if idx > 0 else None),
-        obj=all_current_vertices,
     )
 
     current_midpoint = coordinates[-int(len(coordinates) / 2)]
@@ -123,33 +115,20 @@ def vehicle_motion(
         Vs,
         Ve,
         Vm,
-        agent=idx,
-        time=2,
-        input_map=map_data,
-        post_transform=(idx > 0, current_position if idx > 0 else None),
-        obj=all_current_vertices,
     )
 
     generated_trajectory = np.array(coordinates[:: int(len(coordinates) / total_len)])
+
     generated_trajectory = check_collision_and_revise_static(
         generated_trajectory, transformed_all_current_vertices
     )
 
-    if idx > 0:
-        generated_trajectory = inverse_rot_and_trans(
-            generated_trajectory, current_position
-        )
-    else:
-        generated_trajectory = np.array(coordinates[-total_len:])
 
-    # file_name = "work_dirs/vis_gpt_traj/traj_" + str(idx) + "_final.png"
+    generated_trajectory = inverse_rot_and_trans(
+        generated_trajectory, current_position
+    )
 
-    # visualize(
-    #     generated_trajectory,
-    #     file_name=file_name,
-    #     input_map=map_data,
-    #     obj=all_current_vertices,
-    # )
+
 
     return generated_trajectory
 

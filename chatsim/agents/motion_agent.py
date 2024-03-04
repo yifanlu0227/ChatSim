@@ -4,9 +4,11 @@ from termcolor import colored
 import traceback
 import openai
 import random
+from copy import deepcopy
 from chatsim.foreground.motion_tools.placement_and_motion import vehicle_motion
 from chatsim.foreground.motion_tools.placement_iterative import vehicle_placement, vehicle_placement_specific
 from chatsim.foreground.motion_tools.tools import transform_node_to_lane
+from chatsim.foreground.motion_tools.check_collision import check_collision_and_revise_dynamic
 
 class MotionAgent:
     def __init__(self, config):
@@ -160,7 +162,7 @@ class MotionAgent:
         try:
             q0 = "I will provide you with an operation statement to add and place a vehicle, and I need you to determine the its motion situation from my statement, including: "
 
-            q1 = "(1) 'action', one of ['static', 'random', 'straight', 'turn left', 'turn right', 'change lane left', 'change lane right', 'back']. If action not mentioned in the statement, it defaults to 'straight'." + \
+            q1 = "(1) 'action', one of ['static', 'random', 'straight', 'turn left', 'turn right']. If action not mentioned in the statement, it defaults to 'straight'." + \
                 "For example, the statement is 'add a black car in front of me', then the action is 'straight'." 
 
             q2 = "(2) 'speed', the approximate speed of the vehicle, one of ['random', 'fast', 'slow']. If speed is not mentioned in the statement, it defaults to 'slow'."
@@ -170,7 +172,7 @@ class MotionAgent:
             
             q4 = "(4) 'wrong_way', if the vehicle drives in the wrong way, one of ['true'. 'false']. If the information is not mentioned in the statement, it defaults to 'false'."
 
-            q4 = "An Example: Given the statement 'add a Tesla that is racing straight ahead in the right front of the scene', you should return {'action': 'straight', 'speed': 'acceleration', 'direction': 'away', 'wrong_way': 'false'}"
+            q4 = "An Example: Given the statement 'add a Tesla that is racing straight ahead in the right front of the scene', you should return {'action': 'straight', 'speed': 'fast', 'direction': 'away', 'wrong_way': 'false'}"
 
             q5 = "An Example: Given the statement 'add a yellow Audi in front of the scene', you should return {'action': 'static', 'speed': 'random', 'direction': 'away', 'wrong_way': 'false'}"
 
@@ -197,6 +199,8 @@ class MotionAgent:
             end = answer.rfind("}")
             answer = answer[:end+1]
             motion_prior = eval(answer)
+            if not motion_prior.get('wrong_way'):
+                motion_prior['wrong_way'] = False
             print(f"{colored('[Extracted Response>>>]', attrs=['bold'])} {motion_prior} \n")
 
         except Exception as e:
@@ -209,7 +213,7 @@ class MotionAgent:
 
     def func_placement_and_motion_single_vehicle(self, scene, added_car_name):
         added_car_id = added_car_name.lstrip("added_car_")
-        transformed_map_data = transform_node_to_lane(scene.map_data)
+        transformed_map_data_ = transform_node_to_lane(scene.map_data)
 
         all_current_vertices_coord = scene.all_current_vertices_coord
         for added_traj in scene.all_trajectories:
@@ -220,7 +224,10 @@ class MotionAgent:
             
             scene.added_cars_dict[added_car_name]['need_placement_and_motion'] = False
             one_added_car = scene.added_cars_dict[added_car_name]
-
+            transformed_map_data = deepcopy(transformed_map_data_)
+            if one_added_car['wrong_way']:
+                transformed_map_data['centerline'][:,-1] = (transformed_map_data['centerline'][:,-1] + 1) % 2
+            
             # Scene-independent placement
             if one_added_car.get('x') is None:  # 'x' in one_added_car
                 placement_result = vehicle_placement(
@@ -248,20 +255,33 @@ class MotionAgent:
                 transformed_map_data,
                 scene.all_current_vertices[:,::2,:2] if scene.all_current_vertices.shape[0]!=0 else scene.all_current_vertices,
                 placement_result=one_added_car['placement_result'],
-                current_trajectory=scene.all_trajectories,
-                v_init=0, 
                 high_level_action_direction=one_added_car["action"],
                 high_level_action_speed=one_added_car["speed"],
                 total_len=scene.frames,
-                idx=int(added_car_id)+1
             )
 
-            
             if motion_result[0] is None: # can not generate motion
                 del(scene.added_cars_dict[added_car_name])
                 
-            
             one_added_car['motion'] = motion_result
-            scene.all_trajectories.append(motion_result)
 
             scene.added_cars_dict[added_car_name] = one_added_car
+            all_trajectories = []
+            for one_car_name in scene.added_cars_dict.keys():
+                all_trajectories.append(scene.added_cars_dict[one_car_name]['motion'])
+
+            all_trajectories_after_check_collision = check_collision_and_revise_dynamic(all_trajectories)
+            scene.all_trajectories = all_trajectories_after_check_collision
+
+            for idx, one_car_name in enumerate(scene.added_cars_dict.keys()):
+                all_trajectories.append(scene.added_cars_dict[one_car_name]['motion'])
+                motion_result = all_trajectories_after_check_collision[idx]
+                placement_result = scene.added_cars_dict[one_car_name]['placement_result']
+                if motion_result[0,0] == motion_result[1,0] and motion_result[0,1] == motion_result[1,1]:
+                    motion_result = np.concatenate(motion_result,np.zeros((motion_result.shape[0],1)).fill(np.arctan2((placement_result[-1]-placement_result[-3]),(placement_result[-2]-placement_result[-4]))))
+                else:
+                    direction = np.arctan2((motion_result[1:,1]-motion_result[:-1,1]),(motion_result[1:,0]-motion_result[:-1,0]))
+        
+                    direction = np.concatenate((direction,direction[-1:]),axis=0) 
+                    motion_result = np.concatenate((motion_result,direction.reshape(-1,1)),axis=1) # (frames, 3)
+                scene.added_cars_dict[one_car_name]['motion'] = motion_result

@@ -2,7 +2,7 @@ import os
 import argparse
 
 file_list = [
-    'segment-10247954040621004675_2180_000_2200_000_with_camera_labels',
+    # 'segment-10247954040621004675_2180_000_2200_000_with_camera_labels',
     # 'segment-13469905891836363794_4429_660_4449_660_with_camera_labels',
     # 'segment-14333744981238305769_5658_260_5678_260_with_camera_labels',
     # 'segment-1172406780360799916_1660_000_1680_000_with_camera_labels',
@@ -29,7 +29,7 @@ file_list = [
     # 'segment-14348136031422182645_3360_000_3380_000_with_camera_labels',
     # 'segment-15365821471737026848_1160_000_1180_000_with_camera_labels',
     # 'segment-16470190748368943792_4369_490_4389_490_with_camera_labels',
-    # 'segment-11379226583756500423_6230_810_6250_810_with_camera_labels',
+    'segment-11379226583756500423_6230_810_6250_810_with_camera_labels',
     # 'segment-13085453465864374565_2040_000_2060_000_with_camera_labels',
     # 'segment-14004546003548947884_2331_861_2351_861_with_camera_labels',
     # 'segment-15221704733958986648_1400_000_1420_000_with_camera_labels',

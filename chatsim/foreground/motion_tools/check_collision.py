@@ -10,21 +10,20 @@ def is_projection_overlap(proj1, proj2):
 def is_rectangles_overlap(rect1, rect2):
     """检查两个矩形是否重叠"""
     for i in range(4):
-        # 计算当前矩形的一条边
+
         edge = rect1[i] - rect1[(i + 1) % 4]
-        # 计算法线（垂直方向）
+
         axis = np.array([-edge[1], edge[0]])
         axis /= np.linalg.norm(axis)
 
-        # 在法线方向上投影两个矩形
         proj1 = project_polygon_onto_axis(Polygon(rect1), axis)
         proj2 = project_polygon_onto_axis(Polygon(rect2), axis)
 
-        # 检查投影是否重叠
+
         if not is_projection_overlap(proj1, proj2):
             return False
 
-    # 检查rect2的边
+
     for i in range(4):
         edge = rect2[i] - rect2[(i + 1) % 4]
         axis = np.array([-edge[1], edge[0]])
@@ -40,40 +39,26 @@ def is_rectangles_overlap(rect1, rect2):
 
 
 def calculate_car_corners(trajectory, car_length=4.5, car_width=2):
-    """
-    根据车辆中心点轨迹计算车辆四个角点的轨迹。
-    输入:
-    - trajectory: 车辆中心点的轨迹，大小为(T, 2)
-    - car_length: 车辆长度
-    - car_width: 车辆宽度
-
-    输出:
-    - corners_trajectory: 车辆四个角点的轨迹，大小为(T, 4, 2)
-    """
+    
     T = trajectory.shape[0]
     corners_trajectory = np.zeros((T, 4, 2))
 
     for i in range(1, T):
-        # 计算朝向（即速度方向）
         direction = trajectory[i] - trajectory[i - 1]
         direction /= np.linalg.norm(direction)
 
-        # 计算垂直于朝向的向量
         perpendicular = np.array([-direction[1], direction[0]])
 
-        # 计算四个角点相对于中心点的位置
         front = 0.5 * car_length * direction
         back = -0.5 * car_length * direction
         left = 0.5 * car_width * perpendicular
         right = -0.5 * car_width * perpendicular
 
-        # 计算四个角点的绝对位置
         corners_trajectory[i, 0] = trajectory[i] + front + left
         corners_trajectory[i, 1] = trajectory[i] + front + right
         corners_trajectory[i, 2] = trajectory[i] + back + right
         corners_trajectory[i, 3] = trajectory[i] + back + left
 
-    # 第一个时间步使用第二个时间步的朝向
     corners_trajectory[0] = corners_trajectory[1]
 
     return corners_trajectory
@@ -154,3 +139,97 @@ def check_collision_and_revise_static(curr_trajectory, objects):
                 curr_trajectory[t] += delta
 
     return curr_trajectory
+
+
+
+def check_collision_and_revise_dynamic(input_trajectory):
+    # curr_trajectory (T,2)
+    # objects (N,4,2)
+
+    def judge_priority(traj1,traj2):
+    # assume modify traj2
+        T = traj1.shape[0]
+        traj2_new = traj2[0:1].repeat(T,axis=0)
+
+        for t in range(T):
+            if is_rectangles_overlap(traj1[t],traj2_new[t]):
+                return 1
+        return 2
+
+    def interpolate_uniformly(track, num_points):
+        """
+        Interpolates a given track to a specified number of points, distributing them uniformly.
+
+        :param track: A numpy array of shape (n, d) where n is the number of points and d is the dimension.
+        :param num_points: The number of points in the output interpolated track.
+        :return: A numpy array of shape (num_points, d) representing the uniformly interpolated track.
+        """
+        # Calculate the cumulative distance along the track
+        distances = np.cumsum(np.sqrt(np.sum(np.diff(track, axis=0) ** 2, axis=1)))
+        distances = np.insert(distances, 0, 0)  # Include the start point
+
+        # Generate the desired number of equally spaced distances
+        max_distance = distances[-1]
+        uniform_distances = np.linspace(0, max_distance, num_points)
+
+        # Interpolate for each dimension
+        uniform_track = np.array([np.interp(uniform_distances, distances, track[:, dim]) for dim in range(track.shape[1])])
+
+        return uniform_track.T
+    
+    def add_wait_timesteps(traj,t,wait_timesteps):
+        traj_out = traj.copy()
+        T = traj_out.shape[0]
+        if t+wait_timesteps > T:
+            traj_out = interpolate_uniformly(traj[:t],T)
+        else:
+            traj_out[:t+wait_timesteps] = interpolate_uniformly(traj[:t],t+wait_timesteps)
+            traj_out[t+wait_timesteps:] = traj[t:-wait_timesteps]
+        return traj_out
+    
+
+    valid_traj = []
+    valid_record = []
+    for item in input_trajectory:
+        if item[0] is not None:
+            valid_record.append(1)
+            valid_traj.append(item)
+        else:
+            valid_record.append(0)
+
+    curr_trajectory = np.array(valid_traj)
+    car_length = 5
+    car_width = 2.2
+    safe_distance = 8
+    N, T = curr_trajectory.shape[0], curr_trajectory.shape[1]
+    all_corners_trajectory = np.zeros((N, T, 4, 2))
+    for n in range(N):
+        all_corners_trajectory[n] = calculate_car_corners(curr_trajectory[n], car_length, car_width)
+
+    revised_trajectory = curr_trajectory.copy()
+
+    for i in range(N):
+        for j in range(i+1,N):
+            for t in range(1,T):
+                if is_rectangles_overlap(all_corners_trajectory[i,t],all_corners_trajectory[j,t]):
+                    modify_idx = judge_priority(all_corners_trajectory[i],all_corners_trajectory[j])
+                    collision_point = (curr_trajectory[i,t] + curr_trajectory[j,t]) / 2
+                    if modify_idx == 1:
+                        collision_speed = np.linalg.norm(curr_trajectory[j,t] - curr_trajectory[j,t-1])
+                        wait_timesteps = int(np.ceil(safe_distance / collision_speed)) 
+                        curr_trajectory[i] = add_wait_timesteps(curr_trajectory[i],t,wait_timesteps)
+                    if modify_idx == 2:
+                        collision_speed = np.linalg.norm(curr_trajectory[i,t] - curr_trajectory[i,t-1])
+                        wait_timesteps = int(np.ceil(safe_distance / collision_speed)) 
+                        curr_trajectory[j] = add_wait_timesteps(curr_trajectory[j],t,wait_timesteps)
+                    break
+
+    output = []
+    num = 0
+    for i in range(len(valid_record)):
+        if valid_record[i] == 1:
+            output.append(curr_trajectory[num])
+            num += 1
+        else:
+            output.append(input_trajectory[i])
+    return output

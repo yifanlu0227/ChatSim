@@ -34,6 +34,8 @@ agents:
       f2nerf_config: wanjinyou_big
       dataset_name: waymo_multi_view
 
+      nerf_quiet_render: false
+
   deletion_agent:
     inpaint_dir: chatsim/background/inpainting/latent-diffusion
     video_inpaint_dir: chatsim/background/inpainting/Inpaint-Anything

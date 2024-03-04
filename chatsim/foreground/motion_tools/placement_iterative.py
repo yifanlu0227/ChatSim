@@ -17,11 +17,7 @@ def crop_map(input_map):
 
 def conflict_check(centerline,index,current_vertices):
     thres = 4
-    # for current_index in current_occupied_lane_index:
-    #     point1 = (centerline[index][0:2]+centerline[index][2:4])/2
-    #     point2 = (centerline[current_index][0:2]+centerline[current_index][2:4])/2
-    #     if np.sqrt(np.sum((np.array(point2) - np.array(point1))**2)) < thres:
-    #         return False
+    
     for i in range(current_vertices.shape[0]):
         point1 = (centerline[index][0:2]+centerline[index][2:4])/2
         point2 = current_vertices[i][:2]
@@ -151,9 +147,7 @@ def vehicle_placement(input_map,current_vertices,direction,vehicle_mode,distance
     distance_min_default = 0
     distance_max_default = 50
 
-    # mode_list = ['front','left front','left','right front','right','random']
-    # mode = np.ramdom.choice(mode_list)
-    # mode = 'random'
+
     mode = vehicle_mode
 
     if distance_constraint:
@@ -381,14 +375,7 @@ def vehicle_placement(input_map,current_vertices,direction,vehicle_mode,distance
     x3, y3 = xc + w * np.cos(theta) - l * np.sin(theta), yc - l * np.cos(theta) - w * np.sin(theta)
     x4, y4 = xc - w * np.cos(theta) - l * np.sin(theta), yc - l * np.cos(theta) + w * np.sin(theta)
 
-    # plt.Polygon(xy=[[x1, y1], [x2, y2], [x3, y3], [x4, y4]], color='red', alpha=0.8)
-    plt.fill([x1,x2,x3,x4], [y1,y2,y3,y4], 'r',  zorder=10)
-    # print('bbox:',[x1,x2,x3,x4],[y1,y2,y3,y4])
-    # plt.fill([0,10,10,0], [0,0,10,10], 'r', zorder=10)
-
-    # plt.xlabel("X")
-    # plt.ylabel("Y")
-    # plt.savefig(str('place')+'.png')
+    
     
     return  (xc,yc,theta,xs,ys,xe,ye)
 
