@@ -105,7 +105,7 @@ def main():
     if not isinstance(tfrecord_path, list):   
         tfrecord_path = [tfrecord_path]
     if not os.path.isdir(saving_dir):   
-        os.mkdir(saving_dir)
+        os.makedirs(saving_dir, exist_ok=True)
 
     isotropic_focal = lambda intrinsic_dict: intrinsic_dict['f_u']==intrinsic_dict['f_v']
 
