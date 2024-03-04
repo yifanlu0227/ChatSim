@@ -30,7 +30,7 @@ def check_and_mkdirs(path):
 def generate_video(scene, prompt):
     video_output_path = os.path.join(scene.output_dir, scene.logging_name)
     check_and_mkdirs(video_output_path)
-    filename = prompt.replace(' ', '_')
+    filename = prompt.replace(' ', '_')[:40]
     fps = 20
     print(colored("[Compositing video]", 'blue', attrs=['bold']), "start ...")
     # save to gif

@@ -18,7 +18,7 @@ def get_parser():
     parser = argparse.ArgumentParser(description="ChatSim argrument parser.")
     parser.add_argument(
         "--config_yaml", "-y", type=str,
-        default="config/waymo-1442.yaml",
+        default="config/waymo-1137.yaml",
         help="path to config file",
     )
     parser.add_argument(
@@ -28,7 +28,7 @@ def get_parser():
     )
     parser.add_argument(
         "--simulation_name", "-s", type=str,
-        default="debug",
+        default="demo",
         help="simulation experiment name.",
     )
 
@@ -87,6 +87,7 @@ class ChatSim:
                 language prompt to ChatSim.
         """
         self.scene.setup_cars()
+        print(self.scene.original_cars_dict)
         self.current_prompt = prompt
 
         # execute agent's LLM part

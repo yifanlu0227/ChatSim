@@ -39,9 +39,10 @@ class DeletionAgent:
             
             q5 = "Note that there is no need to return any code or explanations; only provide a JSON dictionary."
 
-            q6 = "The requirement is :" + message
+            q6 = "If the dictionary is empty, 'removed_cars' should be an empty list "
+            q7 = "The requirement is :" + message
             
-            prompt_list = [q0,q1,q2,q3,q4,q5,q6]
+            prompt_list = [q0,q1,q2,q3,q4,q5,q6,q7]
 
             result = openai.ChatCompletion.create(
                 model="gpt-4",

@@ -114,7 +114,7 @@ class MotionAgent:
     def llm_placement_w_dependency(self, scene, message, scene_object_description):
         try:
             q0 = "I will provide you with an operation statement to add and place a vehicle, as well as information of other cars in the scene."
-            
+
             q1 = "I need you to determine a specific position (x, y) for placement of the added car in my statement. "
 
             q2 = "Information of other cars in the scene is a two-level dictionary, with the first level representing the different car id in the scene, " + \
@@ -128,11 +128,13 @@ class MotionAgent:
 
             q5 = "The previously performed operation is : " + str(scene.past_operations)
 
-            q6 = "You should return a placemenet positon in JSON dictionary with 2 keys: 'x', 'y'. Do not provide any code or explanations, only return the final JSON dictionary."
+            q6 = "If the car with key 'direction', and direction is close, 'behind' means keep the same 'y' and increase 'x' 10 meters. If direction is away, 'behind' means keep the same 'y' and decrease 'x' 10 meters"
 
-            q7 = "The requirement is:" + message
+            q7 = "You should return a placemenet positon in JSON dictionary with 2 keys: 'x', 'y'. Do not provide any code or explanations, only return the final JSON dictionary."
 
-            prompt_list = [q0,q1,q2,q3,q4,q5,q6,q7]
+            q8 = "The requirement is:" + message
+
+            prompt_list = [q0,q1,q2,q3,q4,q5,q6,q7,q8]
 
             result = openai.ChatCompletion.create(
             model="gpt-4",
@@ -225,8 +227,11 @@ class MotionAgent:
             scene.added_cars_dict[added_car_name]['need_placement_and_motion'] = False
             one_added_car = scene.added_cars_dict[added_car_name]
             transformed_map_data = deepcopy(transformed_map_data_)
+            
             if one_added_car['wrong_way']:
                 transformed_map_data['centerline'][:,-1] = (transformed_map_data['centerline'][:,-1] + 1) % 2
+                transformed_map_data['centerline'] = np.concatenate((transformed_map_data['centerline'][:,2:4], transformed_map_data['centerline'][:,0:2], transformed_map_data['centerline'][:,4:]),axis=1)
+                transformed_map_data['centerline'] = np.flip(transformed_map_data['centerline'],axis=0)
             
             # Scene-independent placement
             if one_added_car.get('x') is None:  # 'x' in one_added_car
@@ -268,20 +273,24 @@ class MotionAgent:
             scene.added_cars_dict[added_car_name] = one_added_car
             all_trajectories = []
             for one_car_name in scene.added_cars_dict.keys():
-                all_trajectories.append(scene.added_cars_dict[one_car_name]['motion'])
-
+                all_trajectories.append(scene.added_cars_dict[one_car_name]['motion'][:,:2])
+            
             all_trajectories_after_check_collision = check_collision_and_revise_dynamic(all_trajectories)
             scene.all_trajectories = all_trajectories_after_check_collision
-
+            import ipdb; ipdb.set_trace()
             for idx, one_car_name in enumerate(scene.added_cars_dict.keys()):
                 all_trajectories.append(scene.added_cars_dict[one_car_name]['motion'])
                 motion_result = all_trajectories_after_check_collision[idx]
                 placement_result = scene.added_cars_dict[one_car_name]['placement_result']
-                if motion_result[0,0] == motion_result[1,0] and motion_result[0,1] == motion_result[1,1]:
-                    motion_result = np.concatenate(motion_result,np.zeros((motion_result.shape[0],1)).fill(np.arctan2((placement_result[-1]-placement_result[-3]),(placement_result[-2]-placement_result[-4]))))
-                else:
-                    direction = np.arctan2((motion_result[1:,1]-motion_result[:-1,1]),(motion_result[1:,0]-motion_result[:-1,0]))
-        
-                    direction = np.concatenate((direction,direction[-1:]),axis=0) 
-                    motion_result = np.concatenate((motion_result,direction.reshape(-1,1)),axis=1) # (frames, 3)
+                direction = np.zeros((motion_result.shape[0],1))
+                angle = np.arctan2((placement_result[-1]-placement_result[-3]),(placement_result[-2]-placement_result[-4]))
+                for i in range(motion_result.shape[0]-1):
+                    if motion_result[i,0] == motion_result[i+1,0] and motion_result[i,1] == motion_result[i+1,1]:
+                        direction[i,0] = angle
+                        
+                    else:
+                        direction[i,0] = np.arctan2((motion_result[i+1,1]-motion_result[i,1]),(motion_result[i+1,0]-motion_result[i,0]))
+
+                direction[-1,0] = direction[-2,0]
+                motion_result = np.concatenate((motion_result,direction),axis=1) # (frames, 3)
                 scene.added_cars_dict[one_car_name]['motion'] = motion_result

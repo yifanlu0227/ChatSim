@@ -3,8 +3,18 @@
 This is an auxiliary library for ChatSim, predicting skydome environment HDR map from single or multi-view images.
 
 ## Installation
+Due to the independent development process, the pytorch lightning version of this part is not compatible with the pytorch lightning version of chatsim, which requires a new conda environment. We apologize for the inconvenience.
+
+```bash
+conda create -n hdr python=3.9 
+# suppose you have cuda version >= 11.3
+conda activate hdr
+conda install pytorch==1.12.1 torchvision==0.13.1 torchaudio==0.12.1 cudatoolkit=11.3 -c pytorch
+pip install -r requirements.txt
+```
 
 **imageio requirement:** To read .exr file, you need FreeImage library. You can obtain it with either:
+
 - download in terminal:
  
     ```imageio_download_bin freeimage```
@@ -25,7 +35,7 @@ mkdir dataset # create a folder for dataset
 ### HDRI data
 We use HDRI data crawled from [Poly Hevean](https://polyhaven.com). All HDRIs subject to [CC0 License](https://polyhaven.com/license). 
 
-You can download our selected and divided HDRIs from [Google Drive](https://drive.google.com/file/d/1YVGg0mopwTIIPfQBsM3Er7sxa062ywHM/view?usp=drive_link), and put it under the `dataset` folder, naming it `HDRi_download`
+You can download our selected and divided HDRIs from [Google Drive](https://drive.google.com/file/d/1dU4Bce3dpcr6lnBJkyG2OKl1GmU8BviQ/view?usp=drive_link), and put it under the `dataset` folder, naming it `HDRi_download`
 
 Or you want to download the HDRIs yourself, you can use the following command.
 ```

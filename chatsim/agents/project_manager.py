@@ -178,11 +178,21 @@ class ProjectManager:
             placement_prior = motion_agent.llm_placement_wo_dependency(scene, task)
         # scene-dependent placement -> LLM will determine 'x', 'y'
         else:
-            valid_object_descriptors = ['x', 'y', 'u', 'v', 'depth', 'rgb']
+            valid_object_descriptors_for_cars_in_scene = ['x', 'y', 'u', 'v', 'depth', 'rgb']
             scene_object_description = {}
+
             for car_name, description_dict in scene.original_cars_dict.items():
-                filtered_description_dict = {k: v for k, v in description_dict.items() if k in valid_object_descriptors}
+                filtered_description_dict = {k: v for k, v in description_dict.items() if k in valid_object_descriptors_for_cars_in_scene}
                 scene_object_description[car_name] = filtered_description_dict
+            
+            valid_object_descriptors_for_added_cars = ['color', 'type']
+            for car_name, description_dict in scene.added_cars_dict.items():
+                filtered_description_dict = {k: v for k, v in description_dict.items() if k in valid_object_descriptors_for_added_cars}
+                filtered_description_dict['x'] = description_dict['placement_result'][0]
+                filtered_description_dict['y'] = description_dict['placement_result'][1]
+                filtered_description_dict['direction'] = description_dict['direction']
+                scene_object_description[car_name] = filtered_description_dict
+
 
             placement_prior = motion_agent.llm_placement_w_dependency(scene, task, scene_object_description)
 
@@ -215,8 +225,12 @@ class ProjectManager:
             filtered_description_dict = {k: v for k, v in description_dict.items() if k in valid_object_descriptors}
             scene_object_description[car_name] = filtered_description_dict
 
+        from icecream import ic
+        ic(scene_object_description)
+
         deletion_car_names = deletion_agent.llm_finding_deletion(scene, task, scene_object_description)
-        for car_name in range(deletion_car_names):
+        
+        for car_name in deletion_car_names:
             scene.remove_car(car_name)
 
     def view_adjust_operation(self, scene, task, tech_agents):

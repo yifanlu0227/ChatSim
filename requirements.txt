@@ -27,7 +27,6 @@ albumentations==0.5.2
 hydra-core
 tabulate
 webdataset
-packaging
 timm
 wldhx.yadisk-direct
 jpeg4py
@@ -40,3 +39,5 @@ streamlit>=0.73.1
 einops==0.3.0
 torch-fidelity==0.3.0
 transformers==4.3.1
+torchmetrics==0.6.0
+packaging==21.3
