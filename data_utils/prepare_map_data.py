@@ -7,7 +7,7 @@ from waymo_open_dataset.utils import frame_utils
 import open3d as o3d
 import tensorflow as tf
 
-FILENAME = '/dssg/home/acct-giftxhy/giftxhy/waymo_tfrecord/1.4.2/individual_files_validation_segment-10247954040621004675_2180_000_2200_000_with_camera_labels.tfrecord'
+FILENAME = '/home/ubuntu/yifanlu/Chatsim2/ChatSim-release/data/waymo_tfrecords/1.4.2/segment-11379226583756500423_6230_810_6250_810_with_camera_labels.tfrecord'
 
 dataset = tf.data.TFRecordDataset(FILENAME, compression_type='')
 
@@ -22,7 +22,7 @@ for data in dataset:
 print('#####################################################')
 
 
-transform = np.reshape(np.array(frames[0].pose.transform), [4, 4])
+transform = np.reshape(np.array(frames[5].pose.transform), [4, 4])
 transform = np.linalg.inv(transform)
 road_edges = []
 lanes = []
@@ -129,14 +129,14 @@ def generate_vertices(car):
     vertices = np.asarray([rotate(pos, heading) + box_center for pos in relative_positions])
     return vertices
 
-cars = np.load('/dssg/home/acct-giftxhy/giftxhy/yuxiwei/nerf-factory/data/waymo/segment-10247954040621004675_2180_000_2200_000_with_camera_labels/3d_boxes.npy', allow_pickle = True).item()
+# cars = np.load('/dssg/home/acct-giftxhy/giftxhy/yuxiwei/nerf-factory/data/waymo/segment-10247954040621004675_2180_000_2200_000_with_camera_labels/3d_boxes.npy', allow_pickle = True).item()
 
-vertices = generate_vertices(cars['0'])
+# vertices = generate_vertices(cars['0'])
 
-plt.plot(vertices[::2,0],vertices[::2,1])
+# plt.plot(vertices[::2,0],vertices[::2,1])
 
-plt.scatter([29.623],[-4.65])
-plt.savefig('/dssg/home/acct-giftxhy/giftxhy/waymo_tfrecord/1.4.2/map.png')
+# plt.scatter([29.623],[-4.65])
+plt.savefig('/home/ubuntu/yuxiwei/debug/map.png')
 import ipdb; ipdb.set_trace()
 output = {"centerline":cropped_lanes,"boundary":cropped_road_edges}
 import pickle 
@@ -146,4 +146,22 @@ with open('/dssg/home/acct-giftxhy/giftxhy/waymo_tfrecord/1.4.2/map_data.pkl', '
 import ipdb; ipdb.set_trace()
 
     
-    
+def vis_map_debug(map, motion):
+                from matplotlib import pyplot as plt
+                cropped_road_edges = map['boundary']
+                cropped_lanes = map['centerline']
+                for edge in cropped_road_edges:
+                    edge = np.array(edge)
+                    # edge = edge[::5]
+                    plt.plot(edge[:,0],edge[:,1],c='red')
+
+                for lane in cropped_lanes:
+                    lane = np.array(lane)
+                    # lane = lane[::5]
+                    plt.plot(lane[:,0],lane[:,1],c='green')
+
+                if motion is not None:
+                        
+                        # lane = lane[::5]
+                    plt.plot(motion[:,0],motion[:,1],c='blue')
+                plt.savefig('/home/ubuntu/yuxiwei/debug/running_map.png')

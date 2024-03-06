@@ -16,7 +16,7 @@ class AssetSelectAgent:
             'cadillac' : "Cadillac_CT6.blend",
             'chevrolet' : "Chevrolet.blend",
             'dodge' : "Dodge_SRT_Hellcat.blend",
-            'ferriari' : "Ferriari_f150",
+            'ferriari' : "Ferriari_f150.blend",
             'lamborghini' : "Lamborghini.blend",
             'rover' : "Land_Rover_range_rover.blend",
             'tank' : "M1A2_tank.blend",

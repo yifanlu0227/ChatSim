@@ -14,7 +14,7 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
+lib/*
 lib64/
 parts/
 sdist/
@@ -160,7 +160,7 @@ cython_debug/
 #.idea/
 
 
-data
+data/*
 chatsim/background/mcnerf/panorama
 chatsim/background/mcnerf/data
 chatsim/background/mcnerf/External/libtorch

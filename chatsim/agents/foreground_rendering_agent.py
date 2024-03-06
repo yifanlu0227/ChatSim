@@ -1,6 +1,7 @@
 import numpy as np
 from termcolor import colored
 import imageio.v2 as imageio
+from tqdm import tqdm
 import os
 from chatsim.agents.utils import check_and_mkdirs, transform_nerf2opencv_convention, generate_rays, blending_hdr_sky, srgb_gamma_correction
 import cv2
@@ -67,8 +68,9 @@ class ForegroundRenderingAgent:
             # multiprocess rendering
             real_render_frames = 1 if scene.add_car_all_static else scene.frames
             print(f"{colored('[Blender]', 'magenta', attrs=['bold'])} Start rendering {real_render_frames} images.")
+            print(f"see the log in {os.path.join(scene.cache_dir, 'blender.log')} if save_cache is enabled")
 
-            for frame_id in range(real_render_frames):
+            for frame_id in tqdm(range(real_render_frames)):
                 self.func_blender_add_cars_single_frame(scene, frame_id)
 
             print(f"{colored('[Blender]', 'magenta', attrs=['bold'])} Finish rendering {real_render_frames} images.")
@@ -283,8 +285,6 @@ class ForegroundRenderingAgent:
         os.system(
             f"{self.blender_python_dir} -b --python {self.blender_utils_dir}/main_multicar.py -- {yaml_path} 1> {os.path.join(scene.cache_dir, 'blender.log')}"
         )
-        print(f"see the log in {os.path.join(scene.cache_dir, 'blender.log')} if save_cache is enabled")
-
 
     def func_compose_with_new_depth_single_frame(self, scene, frame_id):
         output_path = os.path.join(scene.cache_dir, "blender_output")

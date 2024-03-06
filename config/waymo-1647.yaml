@@ -1,0 +1,68 @@
+scene_name: &scene_name segment-16470190748368943792_4369_490_4389_490_with_camera_labels
+
+scene:
+  data_root: data/waymo_multi_view
+  scene_name: *scene_name
+  
+  # suppose these files are under $data_root/$scene_name/ 
+  ext_int_file: 'cams_meta.npy'
+  bbox_file: '3d_boxes.npy'
+  map_file: 'map.pkl'
+  init_img_file: 'wide_init_img.png'
+  pcd_file: 'point_cloud/000_TOP.ply'
+
+  is_wide_angle: &is_wide_angle true
+  frames: 10
+
+  # under root directory
+  cache_dir: 'results/cache'
+  output_dir: 'results'
+  save_cache: true
+
+agents:
+  asset_select_agent:
+    assets_dir: data/blender_assets
+
+  background_rendering_agent:
+    nerf_config: &nerf_config
+      is_wide_angle: *is_wide_angle
+      scene_name: *scene_name
+      f2nerf_dir: chatsim/background/mcnerf
+      nerf_exp_name: exp_coeff_0.15
+      rendering_mode: render_wide_angle_hdr_shutter # nerf_mode includes render_path, render_path_hdr_shutter, render_panorama, render_panorama_shutter, render_wide_angle, render_wide_angle_hdr, render_wide_angle_hdr_shutter
+
+      f2nerf_config: wanjinyou_big
+      dataset_name: waymo_multi_view
+
+      nerf_quiet_render: true
+
+  deletion_agent:
+    inpaint_dir: chatsim/background/inpainting/latent-diffusion
+    video_inpaint_dir: chatsim/background/inpainting/Inpaint-Anything
+
+  foreground_rendering_agent:
+    nerf_config: *nerf_config
+
+    skydome_hdri_dir: data/waymo_skydome
+    skydome_hdri_idx: '000' # manually select
+
+    use_surrounding_lighting: false # only use skydome lighting
+
+    blender_python_dir: chatsim/foreground/Blender/blender-3.5.1-linux-x64/blender
+    blender_utils_dir: chatsim/foreground/Blender/utils/blender_utils
+
+    estimate_depth: false
+    depth_est:
+      method: SAM
+      SAM:
+        ckpt: &sam_ckpt data/pretrain/sam_vit_h_4b8939.pth
+        model_type: vit_h
+
+  project_manager:
+    none
+
+  motion_agent: 
+    none
+  
+  view_adjust_agent:
+    none

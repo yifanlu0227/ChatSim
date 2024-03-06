@@ -56,7 +56,7 @@ class Scene(nn.Module):
         extrinsics = np.load(self.ext_int_path)[:, :12].reshape(-1, 3, 4)
         extrinsics = extrinsics[:, :3, :4]
 
-        self.nerf_motion_extrinsics = extrinsics
+        self.nerf_motion_extrinsics = extrinsics # [N, 3, 4]
 
         # read intrinsics from cams_meta.npy [ziwang]
         self.intrinsics = np.load(self.ext_int_path)[:, 12:21].reshape(-1, 3, 3)[0]
@@ -85,7 +85,7 @@ class Scene(nn.Module):
         self.add_car_all_static = True # check every time before blender rendering
         
 
-        self.current_extrinsics = self.nerf_motion_extrinsics[0:1]  # use first frame for initialization, in NeRF convention
+        self.current_extrinsics = self.nerf_motion_extrinsics[3:4]  # use the second frame because it is in the training set. Better visualization
         self.current_extrinsics = self.current_extrinsics.repeat(self.frames, axis=0)
 
         self.removed_cars = []  # keys of cars which are removed

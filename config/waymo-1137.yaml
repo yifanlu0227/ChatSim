@@ -28,13 +28,13 @@ agents:
       is_wide_angle: *is_wide_angle
       scene_name: *scene_name
       f2nerf_dir: chatsim/background/mcnerf         # directory of mcnerf (mcnerf uses f2nerf as the backbone)
-      nerf_exp_name: exp_0302_coeff_0.1_start_5     # experiment name, corresponding to your trained model
+      nerf_exp_name: exp_coeff_0.3                  # experiment name, corresponding to your trained model
       rendering_mode: render_wide_angle_hdr_shutter # `render_wide_angle_hdr_shutter` if `is_wide_angle` is true, otherwise `render_hdr_shutter`
 
       f2nerf_config: wanjinyou_big                  # f2nerf config name
       dataset_name: waymo_multi_view                # dataset name
 
-      nerf_quiet_render: true                       # whether to suppress nerf's output in the terminal
+      nerf_quiet_render: false                      # whether to suppress nerf's output in the terminal
 
   deletion_agent:
     inpaint_dir: chatsim/background/latent-diffusion          # directory of latent diffusion

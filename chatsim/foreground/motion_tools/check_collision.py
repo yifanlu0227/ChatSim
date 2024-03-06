@@ -216,11 +216,11 @@ def check_collision_and_revise_dynamic(input_trajectory):
                     collision_point = (curr_trajectory[i,t] + curr_trajectory[j,t]) / 2
                     if modify_idx == 1:
                         collision_speed = np.linalg.norm(curr_trajectory[j,t] - curr_trajectory[j,t-1])
-                        wait_timesteps = int(np.ceil(safe_distance / collision_speed)) 
+                        wait_timesteps = int(np.ceil(safe_distance / (collision_speed + 0.0001))) 
                         curr_trajectory[i] = add_wait_timesteps(curr_trajectory[i],t,wait_timesteps)
                     if modify_idx == 2:
                         collision_speed = np.linalg.norm(curr_trajectory[i,t] - curr_trajectory[i,t-1])
-                        wait_timesteps = int(np.ceil(safe_distance / collision_speed)) 
+                        wait_timesteps = int(np.ceil(safe_distance / (collision_speed + 0.0001))) 
                         curr_trajectory[j] = add_wait_timesteps(curr_trajectory[j],t,wait_timesteps)
                     break
 

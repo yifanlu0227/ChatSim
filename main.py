@@ -18,7 +18,7 @@ def get_parser():
     parser = argparse.ArgumentParser(description="ChatSim argrument parser.")
     parser.add_argument(
         "--config_yaml", "-y", type=str,
-        default="config/waymo-1137.yaml",
+        default="config/waymo-1287.yaml",
         help="path to config file",
     )
     parser.add_argument(
@@ -87,7 +87,6 @@ class ChatSim:
                 language prompt to ChatSim.
         """
         self.scene.setup_cars()
-        print(self.scene.original_cars_dict)
         self.current_prompt = prompt
 
         # execute agent's LLM part
@@ -95,13 +94,13 @@ class ChatSim:
 
         for task in tasks.values():
             print(
-                f"{colored('[Performing Single Prompt]', on_color='on_green', attrs=['bold'])} {colored(task, attrs=['bold'])}\n"
+                f"{colored('[Performing Single Prompt]', on_color='on_blue', attrs=['bold'])} {colored(task, attrs=['bold'])}\n"
             )
             self.project_manager.dispatch_task(self.scene, task, self.tech_agents)
 
-        print(colored("scene.added_cars_dict", color="red", attrs=["bold"]))
-        pprint.pprint(self.scene.added_cars_dict)
-        print(colored("scene.removed_cars", color="red", attrs=["bold"]))
+        print(colored("scene.added_cars_dict", color="red", attrs=["bold"]), end=' ')
+        pprint.pprint(self.scene.added_cars_dict.keys())
+        print(colored("scene.removed_cars", color="red", attrs=["bold"]), end=' ')
         pprint.pprint(self.scene.removed_cars)
 
     def execute_funcs(self):

@@ -46,7 +46,7 @@ class ProjectManager:
         q8 = "An example (very abstract): the requirement is 'I want several cars driving slowly in the scene', you analyse and return " + \
              "{ 1: 'Add one car driving slowly', 2 : 'Add one car driving slowly', 3 : 'Add one car driving slowly', 4 : 'Add one car driving slowly', 5 : 'Add one car driving slowly', 6 : 'Add one car driving slowly', 7 : 'Add one car driving slowly'} "
 
-        q9 = "Do not return any code or explanation; only a JSON dictionary is required."
+        q9 = "The scene is large enough to contain more than 20 vehicles. So many vehicles can be added to the scene. Do not return any code or explanation; only a JSON dictionary is required."
 
         q10 = "Attention: the adjustments for one specific added vehicle should be included in one single output action. If there are multiple adjustments for one already added car, these adjustments must be merged in one action."
                 
@@ -149,7 +149,7 @@ class ProjectManager:
             self.put_back_deleted_operation(scene, task, tech_agents)
 
         elif operation == 5:
-            self.revise_added_operation(scene, task)
+            self.revise_added_operation(scene, task, tech_agents)
 
         scene.past_operations.append(task)
 
@@ -225,9 +225,6 @@ class ProjectManager:
             filtered_description_dict = {k: v for k, v in description_dict.items() if k in valid_object_descriptors}
             scene_object_description[car_name] = filtered_description_dict
 
-        from icecream import ic
-        ic(scene_object_description)
-
         deletion_car_names = deletion_agent.llm_finding_deletion(scene, task, scene_object_description)
         
         for car_name in deletion_car_names:
@@ -249,8 +246,13 @@ class ProjectManager:
                 if encounter bugs, record them in callback_message to users
         """
         view_adjust_agent = tech_agents['view_adjust_agent']
-        delta_extrinsic = view_adjust_agent.llm_view_adjust(scene, task)
-        view_adjust_agent.func_update_extrinsic(scene, delta_extrinsic)
+        is_ego_motion = view_adjust_agent.llm_reasoning_ego_motion(scene, task)
+        if is_ego_motion:
+            start_frame_in_nerf, end_frame_in_nerf = view_adjust_agent.llm_view_motion_gen(scene, task)
+            view_adjust_agent.func_generate_extrinsic(scene, start_frame_in_nerf, end_frame_in_nerf)
+        else:
+            delta_extrinsic = view_adjust_agent.llm_view_adjust(scene, task)
+            view_adjust_agent.func_update_extrinsic(scene, delta_extrinsic)
 
     def put_back_deleted_operation(self, scene, task, tech_agents):
         """ put back deleted operation. 
@@ -331,6 +333,6 @@ class ProjectManager:
                 if scene.added_cars_dict[modified_car_name][attri] != modified_car_info[attri]:
                     scene.added_cars_dict[modified_car_name]['need_placement_and_motion'] = True
                     scene.added_cars_dict[modified_car_name][attri] = modified_car_info[attri]
-            motion_agent.fucn_placement_and_motion_single_vehicle(scene, modified_car_name)
+            motion_agent.func_placement_and_motion_single_vehicle(scene, modified_car_name)
 
 

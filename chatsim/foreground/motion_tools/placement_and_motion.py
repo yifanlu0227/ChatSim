@@ -41,7 +41,9 @@ def vehicle_motion(
 
     if placement_result[0] is None:
         return (None, "no placement")
-
+    slow_speed_threshold = (1.5, 2)
+    fast_speed_threshold = (10, 25)
+    random_speed_threshold = (3, 25)
 
     current_position = placement_result
     transformed_map_data = rot_and_trans(map_data, current_position)
@@ -49,11 +51,11 @@ def vehicle_motion(
         all_current_vertices, current_position
     )
     if high_level_action_speed == 'slow':
-        v_init = random.randint(3,10)
+        v_init = random.uniform(slow_speed_threshold[0], slow_speed_threshold[1])
     elif high_level_action_speed == 'fast':
-        v_init = random.randint(10,25)
+        v_init = random.randint(fast_speed_threshold[0], fast_speed_threshold[1])
     else:
-        v_init = random.randint(3,25)
+        v_init = random.randint(random_speed_threshold[0], random_speed_threshold[1])
 
     transformed_map_data = filter_forward_lane(transformed_map_data)
 

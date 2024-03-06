@@ -32,7 +32,7 @@ def generate_video(scene, prompt):
     check_and_mkdirs(video_output_path)
     filename = prompt.replace(' ', '_')[:40]
     fps = 20
-    print(colored("[Compositing video]", 'blue', attrs=['bold']), "start ...")
+    print(colored("[Compositing video]", 'blue', attrs=['bold']), "start...")
     # save to gif
     imageio.mimsave(os.path.join(video_output_path, f"{filename}.gif"), 
                     scene.final_video_frames, 

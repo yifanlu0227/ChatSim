@@ -29,7 +29,7 @@ scene_setting_dict = {
     'segment-14348136031422182645_3360_000_3380_000_with_camera_labels.tfrecord': {'start_frame': 140, 'frame_nums': 40},
     'segment-15365821471737026848_1160_000_1180_000_with_camera_labels.tfrecord': {'start_frame': 0, 'frame_nums': 40},
     'segment-16470190748368943792_4369_490_4389_490_with_camera_labels.tfrecord': {'start_frame': 0, 'frame_nums': 40},
-    'segment-11379226583756500423_6230_810_6250_810_with_camera_labels.tfrecord': {'start_frame': 5, 'frame_nums': 40},
+    'segment-11379226583756500423_6230_810_6250_810_with_camera_labels.tfrecord': {'start_frame': 0, 'frame_nums': 40},
     'segment-13085453465864374565_2040_000_2060_000_with_camera_labels.tfrecord': {'start_frame': 110, 'frame_nums': 40},
     'segment-14004546003548947884_2331_861_2351_861_with_camera_labels.tfrecord': {'start_frame': 0, 'frame_nums': 40},
     'segment-15221704733958986648_1400_000_1420_000_with_camera_labels.tfrecord': {'start_frame': 70, 'frame_nums': 40},
@@ -41,10 +41,12 @@ if __name__ == "__main__":
     parser.add_argument("--waymo_data_dir", type=str, help="The original waymo data path")
     parser.add_argument("--nerf_data_dir", type=str, help="The path used to save the pre-processed data")
     args = parser.parse_args()
-
+    
     downloaded_files = os.listdir(args.waymo_data_dir)
 
     for downloaded_file in downloaded_files:
+        if downloaded_file not in scene_setting_dict:
+            continue
         tfrecord_dir = os.path.join(args.waymo_data_dir, downloaded_file)
         scene_setting = scene_setting_dict[downloaded_file]
         start_frame = scene_setting['start_frame']

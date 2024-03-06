@@ -139,7 +139,6 @@ def vehicle_placement(input_map,current_vertices,direction,vehicle_mode,distance
     ego_lane_vec = centerline[ego_index]
 
     input_map = centerline
-    result_list = []
     
     # parameter list
     vehicle_size_x = 2
@@ -148,6 +147,20 @@ def vehicle_placement(input_map,current_vertices,direction,vehicle_mode,distance
     distance_max_default = 50
 
 
+    front_placement_distance_threshold = 8
+
+    left_front_placement_distance_threshold = (1.5, 10)
+    left_front_placement_theta_threshold = (3, 60)
+
+    right_front_placement_distance_threshold = (1.5, 10)
+    right_front_placement_theta_threshold = (300, 357)
+
+    left_placement_distance_threshold = (1.5, 10)
+    left_placement_theta_threshold = (75, 105)
+
+    right_placement_distance_threshold = (1.5, 10)
+    right_placement_theta_threshold = (255, 285)
+
     mode = vehicle_mode
 
     if distance_constraint:
@@ -155,7 +168,7 @@ def vehicle_placement(input_map,current_vertices,direction,vehicle_mode,distance
         distance_max = float(distance_min_max[1]) + 4
 
     l,w = vehicle_size_y/2, vehicle_size_x/2
-
+    
     if mode == 'random':
         while True:
             cur_valid_lane_index_list = []
@@ -192,11 +205,13 @@ def vehicle_placement(input_map,current_vertices,direction,vehicle_mode,distance
             for i in range(len(valid_lane_list)):
                 cur_lane_vec = input_map[valid_lane_list[i]]
                 center_coord = (cur_lane_vec[0:2]+cur_lane_vec[2:4])/2
-                dist_to_lane_vec = get_distance_from_point_to_line(center_coord,ego_lane_vec[0:2],ego_lane_vec[2:4])
+                # dist_to_lane_vec = get_distance_from_point_to_line(center_coord,ego_lane_vec[0:2],ego_lane_vec[2:4])
+                dist_to_lane_vec = abs(center_coord[1])
                 if not distance_constraint:
                     distance_min = distance_min_default
                     distance_max = distance_max_default
-                if np.linalg.norm(center_coord, ord=2) <= distance_max and np.linalg.norm(center_coord, ord=2) >= distance_min and dist_to_lane_vec < 2 and center_coord[0]>0:
+                if np.linalg.norm(center_coord, ord=2) <= distance_max and np.linalg.norm(center_coord, ord=2) >= distance_min and \
+                   dist_to_lane_vec < front_placement_distance_threshold and center_coord[0]>0:
                     if direction == 'close' and input_map[valid_lane_list[i],-1] == 0:
                         cur_valid_lane_index_list.append(valid_lane_list[i])
                     elif direction == 'away' and input_map[valid_lane_list[i],-1] == 1:
@@ -225,13 +240,18 @@ def vehicle_placement(input_map,current_vertices,direction,vehicle_mode,distance
             for i in range(len(valid_lane_list)):
                 cur_lane_vec = input_map[valid_lane_list[i]]
                 center_coord = (cur_lane_vec[0:2]+cur_lane_vec[2:4])/2
-                dist_to_lane_vec = get_distance_from_point_to_line(center_coord,ego_lane_vec[0:2],ego_lane_vec[2:4])
+                # dist_to_lane_vec = get_distance_from_point_to_line(center_coord,ego_lane_vec[0:2],ego_lane_vec[2:4])
+                dist_to_lane_vec = abs(center_coord[1])
                 cur_lane_vec_heading = center_coord - ego_lane_vec[0:2]
                 theta = get_angle_from_line_to_line(ego_lane_vec_heading,cur_lane_vec_heading)
                 if not distance_constraint:
                     distance_min = distance_min_default
                     distance_max = distance_max_default
-                if np.linalg.norm(center_coord, ord=2) <= distance_max and np.linalg.norm(center_coord, ord=2) >= distance_min and dist_to_lane_vec >= 1.5 and dist_to_lane_vec <= 10 and theta >= 3 and theta <= 60:
+                if np.linalg.norm(center_coord, ord=2) <= distance_max and np.linalg.norm(center_coord, ord=2) >= distance_min and \
+                   dist_to_lane_vec >= left_front_placement_distance_threshold[0] and dist_to_lane_vec <= left_front_placement_distance_threshold[1] and \
+                   theta >= left_front_placement_theta_threshold[0] and theta <= left_front_placement_theta_threshold[1]:
+                    
+
                     if direction == 'close' and input_map[valid_lane_list[i],-1] == 0:
                         cur_valid_lane_index_list.append(valid_lane_list[i])
                     elif direction == 'away' and input_map[valid_lane_list[i],-1] == 1:
@@ -260,13 +280,16 @@ def vehicle_placement(input_map,current_vertices,direction,vehicle_mode,distance
             for i in range(len(valid_lane_list)):
                 cur_lane_vec = input_map[valid_lane_list[i]]
                 center_coord = (cur_lane_vec[0:2]+cur_lane_vec[2:4])/2
-                dist_to_lane_vec = get_distance_from_point_to_line(center_coord,ego_lane_vec[0:2],ego_lane_vec[2:4])
+                # dist_to_lane_vec = get_distance_from_point_to_line(center_coord,ego_lane_vec[0:2],ego_lane_vec[2:4])
+                dist_to_lane_vec = abs(center_coord[1])
                 cur_lane_vec_heading = center_coord - ego_lane_vec[0:2]
                 theta = get_angle_from_line_to_line(ego_lane_vec_heading,cur_lane_vec_heading)
                 if not distance_constraint:
                     distance_min = distance_min_default
                     distance_max = distance_max_default
-                if np.linalg.norm(center_coord, ord=2) <= distance_max and np.linalg.norm(center_coord, ord=2) >= distance_min and dist_to_lane_vec >= 1.5 and dist_to_lane_vec <= 10 and theta >= 300 and theta <= 357:
+                if np.linalg.norm(center_coord, ord=2) <= distance_max and np.linalg.norm(center_coord, ord=2) >= distance_min and \
+                   dist_to_lane_vec >= right_front_placement_distance_threshold[0] and dist_to_lane_vec <= right_front_placement_distance_threshold[1] and \
+                   theta >= right_front_placement_theta_threshold[0] and theta <= right_front_placement_theta_threshold[1]:
                     if direction == 'close' and input_map[valid_lane_list[i],-1] == 0:
                         cur_valid_lane_index_list.append(valid_lane_list[i])
                     elif direction == 'away' and input_map[valid_lane_list[i],-1] == 1:
@@ -295,13 +318,16 @@ def vehicle_placement(input_map,current_vertices,direction,vehicle_mode,distance
             for i in range(len(valid_lane_list)):
                 cur_lane_vec = input_map[valid_lane_list[i]]
                 center_coord = (cur_lane_vec[0:2]+cur_lane_vec[2:4])/2
-                dist_to_lane_vec = get_distance_from_point_to_line(center_coord,ego_lane_vec[0:2],ego_lane_vec[2:4])
+                # dist_to_lane_vec = get_distance_from_point_to_line(center_coord,ego_lane_vec[0:2],ego_lane_vec[2:4])
+                dist_to_lane_vec = abs(center_coord[1])
                 cur_lane_vec_heading = center_coord - ego_lane_vec[0:2]
                 theta = get_angle_from_line_to_line(ego_lane_vec_heading,cur_lane_vec_heading)
                 if not distance_constraint:
                     distance_min = distance_min_default
                     distance_max = distance_max_default
-                if np.linalg.norm(center_coord, ord=2) <= distance_max and np.linalg.norm(center_coord, ord=2) >= distance_min and dist_to_lane_vec >= 1.5 and dist_to_lane_vec <= 10 and theta > 75 and theta <= 105:
+                if np.linalg.norm(center_coord, ord=2) <= distance_max and np.linalg.norm(center_coord, ord=2) >= distance_min and \
+                   dist_to_lane_vec >= left_placement_distance_threshold[0] and dist_to_lane_vec <= left_placement_distance_threshold[1] and \
+                   theta > left_placement_theta_threshold[0] and theta <= left_placement_theta_threshold[1]:
                     if direction == 'close' and input_map[valid_lane_list[i],-1] == 0:
                         cur_valid_lane_index_list.append(valid_lane_list[i])
                     elif direction == 'away' and input_map[valid_lane_list[i],-1] == 1:
@@ -330,13 +356,16 @@ def vehicle_placement(input_map,current_vertices,direction,vehicle_mode,distance
             for i in range(len(valid_lane_list)):
                 cur_lane_vec = input_map[valid_lane_list[i]]
                 center_coord = (cur_lane_vec[0:2]+cur_lane_vec[2:4])/2
-                dist_to_lane_vec = get_distance_from_point_to_line(center_coord,ego_lane_vec[0:2],ego_lane_vec[2:4])
+                # dist_to_lane_vec = get_distance_from_point_to_line(center_coord,ego_lane_vec[0:2],ego_lane_vec[2:4])
+                dist_to_lane_vec = abs(center_coord[1])
                 cur_lane_vec_heading = center_coord - ego_lane_vec[0:2]
                 theta = get_angle_from_line_to_line(ego_lane_vec_heading,cur_lane_vec_heading)
                 if not distance_constraint:
                     distance_min = distance_min_default
                     distance_max = distance_max_default
-                if np.linalg.norm(center_coord, ord=2) <= distance_max and np.linalg.norm(center_coord, ord=2) >= distance_min and dist_to_lane_vec >= 1.5 and dist_to_lane_vec <= 10 and theta > 255 and theta < 285:
+                if np.linalg.norm(center_coord, ord=2) <= distance_max and np.linalg.norm(center_coord, ord=2) >= distance_min and \
+                   dist_to_lane_vec >= right_placement_distance_threshold[0] and dist_to_lane_vec <= right_placement_distance_threshold[1] \
+                   and theta > right_placement_theta_threshold[0] and theta < right_placement_theta_threshold[1]:
                     if direction == 'close' and input_map[valid_lane_list[i],-1] == 0:
                         cur_valid_lane_index_list.append(valid_lane_list[i])
                     elif direction == 'away' and input_map[valid_lane_list[i],-1] == 1:
@@ -358,9 +387,7 @@ def vehicle_placement(input_map,current_vertices,direction,vehicle_mode,distance
                 print('exceed the maximum number of vehicle')
                 break
 
-        # if v == 0:
-        #     lane_vec = ego_lane_vec
-        # else:
+        
     if index < 0:
         return(None,'No place to put cars')
 

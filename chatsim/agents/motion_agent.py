@@ -128,13 +128,16 @@ class MotionAgent:
 
             q5 = "The previously performed operation is : " + str(scene.past_operations)
 
-            q6 = "If the car with key 'direction', and direction is close, 'behind' means keep the same 'y' and increase 'x' 10 meters. If direction is away, 'behind' means keep the same 'y' and decrease 'x' 10 meters"
+            q6 = "If the car with key 'direction', and direction is close, 'behind' means keep the same 'y' and increase 'x' 10 meters. If direction is away, 'behind' means keep the same 'y' and decrease 'x' 10 meters." + \
+                 "If the car with key 'direction', and direction is close, 'front' means keep the same 'y' and decrease 'x' 10 meters. If direction is away, 'front' means keep the same 'y' and increase 'x' 10 meters."
 
-            q7 = "You should return a placemenet positon in JSON dictionary with 2 keys: 'x', 'y'. Do not provide any code or explanations, only return the final JSON dictionary."
+            q7 = "'left' means keep the same 'x' and increase 'y' 5m, 'right' means keep the same 'x' and decrease 'y' 5m."
 
-            q8 = "The requirement is:" + message
+            q8 = "You should return a placemenet positon in JSON dictionary with 2 keys: 'x', 'y'. Do not provide any code or explanations, only return the final JSON dictionary."
 
-            prompt_list = [q0,q1,q2,q3,q4,q5,q6,q7,q8]
+            q9 = "The requirement is:" + message
+
+            prompt_list = [q0,q1,q2,q3,q4,q5,q6,q7,q8,q9]
 
             result = openai.ChatCompletion.create(
             model="gpt-4",
@@ -228,7 +231,7 @@ class MotionAgent:
             one_added_car = scene.added_cars_dict[added_car_name]
             transformed_map_data = deepcopy(transformed_map_data_)
             
-            if one_added_car['wrong_way']:
+            if one_added_car['wrong_way'] is True:
                 transformed_map_data['centerline'][:,-1] = (transformed_map_data['centerline'][:,-1] + 1) % 2
                 transformed_map_data['centerline'] = np.concatenate((transformed_map_data['centerline'][:,2:4], transformed_map_data['centerline'][:,0:2], transformed_map_data['centerline'][:,4:]),axis=1)
                 transformed_map_data['centerline'] = np.flip(transformed_map_data['centerline'],axis=0)
@@ -253,9 +256,10 @@ class MotionAgent:
 
             if placement_result[0] is None: # can not placement
                 del(scene.added_cars_dict[added_car_name])
+                return
 
             one_added_car['placement_result'] = placement_result #（xc,yc,theta,xs,ys,xe,ye)
-
+            
             motion_result = vehicle_motion(
                 transformed_map_data,
                 scene.all_current_vertices[:,::2,:2] if scene.all_current_vertices.shape[0]!=0 else scene.all_current_vertices,
@@ -267,6 +271,7 @@ class MotionAgent:
 
             if motion_result[0] is None: # can not generate motion
                 del(scene.added_cars_dict[added_car_name])
+                return 
                 
             one_added_car['motion'] = motion_result
 
@@ -276,10 +281,10 @@ class MotionAgent:
                 all_trajectories.append(scene.added_cars_dict[one_car_name]['motion'][:,:2])
             
             all_trajectories_after_check_collision = check_collision_and_revise_dynamic(all_trajectories)
+            all_trajectories_after_check_collision = all_trajectories
             scene.all_trajectories = all_trajectories_after_check_collision
-            import ipdb; ipdb.set_trace()
+            
             for idx, one_car_name in enumerate(scene.added_cars_dict.keys()):
-                all_trajectories.append(scene.added_cars_dict[one_car_name]['motion'])
                 motion_result = all_trajectories_after_check_collision[idx]
                 placement_result = scene.added_cars_dict[one_car_name]['placement_result']
                 direction = np.zeros((motion_result.shape[0],1))
@@ -294,3 +299,5 @@ class MotionAgent:
                 direction[-1,0] = direction[-2,0]
                 motion_result = np.concatenate((motion_result,direction),axis=1) # (frames, 3)
                 scene.added_cars_dict[one_car_name]['motion'] = motion_result
+
+
