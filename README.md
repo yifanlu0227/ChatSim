@@ -7,7 +7,8 @@ Editable Scene Simulation for Autonomous Driving via LLM-Agent Collaboration
 
 ## Requirement
 - Ubuntu version >= 20.04 (for using Blender 3.+)
-- Metashape software
+- Metashape software (not necessary, we provide recalibrated poses)
+- OpenAI API Key
 
 ## Installation
 First clone this repo recursively.
