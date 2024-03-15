@@ -68,7 +68,7 @@ agents:
     none
 
   motion_agent: 
-    none
+    motion_tracking: True
   
   view_adjust_agent:
     none

@@ -31,7 +31,7 @@ def generate_video(scene, prompt):
     video_output_path = os.path.join(scene.output_dir, scene.logging_name)
     check_and_mkdirs(video_output_path)
     filename = prompt.replace(' ', '_')[:40]
-    fps = 20
+    fps = scene.fps
     print(colored("[Compositing video]", 'blue', attrs=['bold']), "start...")
     # save to gif
     imageio.mimsave(os.path.join(video_output_path, f"{filename}.gif"), 
@@ -421,3 +421,24 @@ def get_color(frame):
             max_num = mask_num
             color = d
     return color
+
+def interpolate_uniformly(track, num_points):
+    """
+    Interpolates a given track to a specified number of points, distributing them uniformly.
+
+    :param track: A numpy array of shape (n, d) where n is the number of points and d is the dimension.
+    :param num_points: The number of points in the output interpolated track.
+    :return: A numpy array of shape (num_points, d) representing the uniformly interpolated track.
+    """
+    # Calculate the cumulative distance along the track
+    distances = np.cumsum(np.sqrt(np.sum(np.diff(track, axis=0) ** 2, axis=1)))
+    distances = np.insert(distances, 0, 0)  # Include the start point
+
+    # Generate the desired number of equally spaced distances
+    max_distance = distances[-1]
+    uniform_distances = np.linspace(0, max_distance, num_points)
+
+    # Interpolate for each dimension
+    uniform_track = np.array([np.interp(uniform_distances, distances, track[:, dim]) for dim in range(track.shape[1])])
+
+    return uniform_track.T

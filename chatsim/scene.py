@@ -28,6 +28,7 @@ class Scene(nn.Module):
             self.map_data = pickle.load(f)
 
         self.is_wide_angle = config['is_wide_angle']
+        self.fps = config.get('fps',20)
         self.frames = config['frames']
 
         """
