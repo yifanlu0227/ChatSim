@@ -3,12 +3,12 @@ import numpy as np
 
 
 def is_projection_overlap(proj1, proj2):
-    """检查两个投影是否重叠"""
+
     return max(proj1[0], proj2[0]) <= min(proj1[1], proj2[1])
 
 
 def is_rectangles_overlap(rect1, rect2):
-    """检查两个矩形是否重叠"""
+
     for i in range(4):
 
         edge = rect1[i] - rect1[(i + 1) % 4]

@@ -1,6 +1,5 @@
 import os
 import pickle
-
 import cv2
 import imageio.v2 as imageio
 import numpy as np
@@ -11,7 +10,6 @@ from chatsim.agents.utils import (check_and_mkdirs, generate_vertices, get_attri
                     transform_nerf2opencv_convention, get_color, getColorList)
 import datetime
 import shutil
-
 
 class Scene(nn.Module):
     def __init__(self, config):
@@ -84,7 +82,6 @@ class Scene(nn.Module):
         """
         self.is_ego_motion = False
         self.add_car_all_static = True # check every time before blender rendering
-        
 
         self.current_extrinsics = self.nerf_motion_extrinsics[3:4]  # use the second frame because it is in the training set. Better visualization
         self.current_extrinsics = self.current_extrinsics.repeat(self.frames, axis=0)
@@ -96,7 +93,6 @@ class Scene(nn.Module):
         self.past_operations = []
 
         self.all_trajectories = []
-
 
         # use current time as cache
         current_time = datetime.datetime.now()
@@ -157,7 +153,6 @@ class Scene(nn.Module):
             u_v_depth_list.append(u_v_depth)
             car_id_list.append(car_id)
 
-
         # add color information
         color_dict = getColorList()
         for idx_in_list, car_id in enumerate(car_id_list):
@@ -187,7 +182,6 @@ class Scene(nn.Module):
         self.name_to_bbox_car_id = name_to_bbox_car_id
         self.bbox_car_id_to_name = bbox_car_id_to_name
 
-
     def remove_car(self, car_name):
         """
         append car_id to self.removed_cars, inpaint them later.
@@ -195,7 +189,6 @@ class Scene(nn.Module):
         car_name
         """
         self.removed_cars.append(car_name)
-
 
     def add_car(self, added_car_info):
         """

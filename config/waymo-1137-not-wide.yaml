@@ -13,6 +13,7 @@ scene:
 
   is_wide_angle: &is_wide_angle false
   frames: 10
+  fps: 20
 
   # under root directory
   cache_dir: 'results/cache'
@@ -62,7 +63,7 @@ agents:
     none
 
   motion_agent: 
-    none
+    motion_tracking: False
   
   view_adjust_agent:
     none

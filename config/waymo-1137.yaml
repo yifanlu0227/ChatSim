@@ -13,6 +13,7 @@ scene:
 
   is_wide_angle: &is_wide_angle true  # whether rendering wide angle images (Width -> 3x Width)
   frames: 10                          # number of frames to render
+  fps: 20                             # fps of the output video
 
   # under root directory
   cache_dir: 'results/cache'          # cache directory
@@ -28,7 +29,7 @@ agents:
       is_wide_angle: *is_wide_angle
       scene_name: *scene_name
       f2nerf_dir: chatsim/background/mcnerf         # directory of mcnerf (mcnerf uses f2nerf as the backbone)
-      nerf_exp_name: exp_coeff_0.3                  # experiment name, corresponding to your trained model
+      nerf_exp_name: exp_0304_coeff_0.15                  # experiment name, corresponding to your trained model
       rendering_mode: render_wide_angle_hdr_shutter # `render_wide_angle_hdr_shutter` if `is_wide_angle` is true, otherwise `render_hdr_shutter`
 
       f2nerf_config: wanjinyou_big                  # f2nerf config name
@@ -68,7 +69,7 @@ agents:
     none
 
   motion_agent: 
-    motion_tracking: True
+    motion_tracking: True                                   # whether to use tracking module
   
   view_adjust_agent:
     none

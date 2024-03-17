@@ -104,24 +104,24 @@ def filter_direction_lane(input_map, direction):
 
 
 def rotation_matrix_from_vector(v):
-    # 计算角度
+
     angle = np.arctan2(v[1], v[0])
     
-    # 创建旋转矩阵
+
     R = np.array([[np.cos(angle), np.sin(angle)],
                   [-np.sin(angle), np.cos(angle)]])
     return R
 
 def transform_points_directly(points, source_vector, target_vector):
-    # 获取源坐标系和目标坐标系的旋转矩阵
+
     R_source = rotation_matrix_from_vector(source_vector)
     R_target = rotation_matrix_from_vector(target_vector)
     
-    # 计算从源坐标系到目标坐标系的直接转换矩阵
+
     R_direct = np.dot(R_target, np.linalg.inv(R_source))
     
-    # 使用直接的转换矩阵进行点转换
-    transformed_points = np.dot(points, R_direct.T)  # 注意转置操作，因为点是以行的形式给出的
+
+    transformed_points = np.dot(points, R_direct.T)  
     
     return transformed_points
 
@@ -314,9 +314,9 @@ def chat(system, user_assistant):
     return response["choices"][0]["message"]["content"]
 
 def hermite_spline(P0, P1, T0, T1, num_points=100):
-    # 生成参数t
+
     t = np.linspace(0, 1, num_points)
-    # 计算Hermite基函数
+
     h00 = 2*t**3 - 3*t**2 + 1
     h10 = t**3 - 2*t**2 + t
     h01 = -2*t**3 + 3*t**2

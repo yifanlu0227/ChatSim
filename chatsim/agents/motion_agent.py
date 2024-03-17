@@ -10,12 +10,8 @@ from chatsim.foreground.motion_tools.placement_iterative import vehicle_placemen
 from chatsim.foreground.motion_tools.tools import transform_node_to_lane
 from chatsim.foreground.motion_tools.check_collision import check_collision_and_revise_dynamic
 from chatsim.agents.utils import interpolate_uniformly
-from chatsim.foreground.trajectory_tracking.export_symbols import (
-    TrajectoryTracker,
-    trajectory_tracker_set_reference_line,
-    trajectory_tracker_set_dynamics_model_initial_state,
-    trajectory_tracker_track_reference_line,
-)
+
+
 
 class MotionAgent:
     def __init__(self, config):
@@ -308,23 +304,25 @@ class MotionAgent:
                 direction[-1,0] = direction[-2,0]
                 motion_result = np.concatenate((motion_result,direction),axis=1) # (frames, 3)
                 if self.motion_tracking:
+                    from simulator import TrajectoryTracker
+                    reference_line = interpolate_uniformly(motion_result, int(scene.frames*scene.fps/10))
                     reference_line = [
-                        (motion_result[i,0], motion_result[i,1])
-                        for i in motion_result.shape[0]
+                        (reference_line[i,0], reference_line[i,1])
+                        for i in range(reference_line.shape[0])
                     ]
-                    reference_line = interpolate_uniformly(reference_line, scene.frames*scene.fps/10)
+                    
                     init_state = (
                         motion_result[0,0],
                         motion_result[0,1],
                         motion_result[0,2],
-                        np.linalg.norm(reference_line[1]-reference_line[0]) * (10)
+                        np.linalg.norm(np.array(reference_line[1])-np.array(reference_line[0])) * 10
                     )
 
-                    tracker = TrajectoryTracker('./', 0)
-                    trajectory_tracker_set_reference_line(tracker, reference_line)
-                    trajectory_tracker_set_dynamics_model_initial_state(tracker, init_state)
-                    rt_states, rt_actions, rt_observations = trajectory_tracker_track_reference_line(tracker)
-                    motion_result = np.stack(rt_states)[:,:-1]
+                    pretrained_checkpoint_dir = './chatsim/foreground/drl-based-trajectory-tracking/submodules/drltt-assets/checkpoints/track/checkpoint'
+                    trajectory_tracker = TrajectoryTracker(checkpoint_dir=pretrained_checkpoint_dir)
+
+                    states, actions = trajectory_tracker.track_reference_line(reference_line=reference_line, init_state=init_state)
+                    motion_result = np.stack(states)[:,:-1]
                     motion_result = interpolate_uniformly(motion_result, scene.frames)
 
                 scene.added_cars_dict[one_car_name]['motion'] = motion_result

@@ -5,7 +5,6 @@ scene:
   scene_name: *scene_name
   
   # suppose these files are under $data_root/$scene_name/ 
-  ext_int_file: 'cams_meta.npy'
   bbox_file: '3d_boxes.npy'
   map_file: 'map.pkl'
   init_img_file: 'wide_init_img.png'
@@ -13,6 +12,7 @@ scene:
 
   is_wide_angle: &is_wide_angle true
   frames: 10
+  fps: 20
 
   # under root directory
   cache_dir: 'results/cache'
@@ -62,7 +62,7 @@ agents:
     none
 
   motion_agent: 
-    none
+    motion_tracking: False
   
   view_adjust_agent:
     none

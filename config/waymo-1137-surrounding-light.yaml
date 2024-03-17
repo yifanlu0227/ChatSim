@@ -13,6 +13,7 @@ scene:
 
   is_wide_angle: &is_wide_angle true  # whether rendering wide angle images (Width -> 3x Width)
   frames: 10                          # number of frames to render
+  fps: 20
 
   # under root directory
   cache_dir: 'results/cache'          # cache directory
@@ -68,7 +69,7 @@ agents:
     none
 
   motion_agent: 
-    none
+    motion_tracking: False
   
   view_adjust_agent:
     none

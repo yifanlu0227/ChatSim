@@ -214,6 +214,19 @@ data
         `-- vehi2veh0.npy               # transformation matrix from i-th frame to the first frame.
 ```
 
+### Step 6: Setup Trajectory Tracking Module(optional)
+If you want to get smoother and more realistic trajectories, you can install the trajectory module and change the parameter motion_agent-motion_tracking to True in .yaml file. For installation(both code and pretrained model), you can run the following commands in terminal
+```bash
+pip install frozendict gym==0.26.2 stable-baselines3[extra] protobuf==3.20.1
+
+cd chatsim/foreground
+git clone --recursive git@github.com:MARMOTatZJU/drl-based-trajectory-tracking.git -b v1.0.0
+
+cd drl-based-trajectory-tracking
+source setup-minimum.sh
+```
+Then switch to the original directory to run main.py. And if the parameter motion_agent-motion_tracking is set as True, each trajectory will be tracked by this module to make it smoother and more realistic.
+
 ### Train the model
 
 #### Download pretrain for quick start-up
@@ -286,7 +299,7 @@ Go to `chatsim/foreground/mclight/skydome_lighting` and follow `chatsim/foregrou
 ## Todo
 - [x] arxiv paper release
 - [x] code and model release
-- [ ] motion tracking module [drl-based-trajectory-tracking ](https://github.com/MARMOTatZJU/drl-based-trajectory-tracking) (to smooth trajectory) 
+- [x] motion tracking module [drl-based-trajectory-tracking ](https://github.com/MARMOTatZJU/drl-based-trajectory-tracking) (to smooth trajectory) 
 - [ ] multi-round wrapper code
 
 ## Citation

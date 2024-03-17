@@ -167,7 +167,7 @@ chatsim/background/mcnerf/data
 chatsim/background/mcnerf/External/libtorch
 chatsim/background/mcnerf/External/libtorch-cxx11-abi-shared-with-deps-1.13.1+cu117.zip
 chatsim/foreground/Blender/blender*
-chatsim/foreground/trajectory_tracking
+chatsim/foreground/drl-based-trajectory-tracking
 setup.sh
 results
 .vscode
