@@ -1,7 +1,7 @@
 # ChatSim
 Editable Scene Simulation for Autonomous Driving via LLM-Agent Collaboration
 
-[Arxiv](https://arxiv.org/abs/2402.05746) | [Project Page](https://yifanlu0227.github.io/ChatSim/)
+[Arxiv](https://arxiv.org/abs/2402.05746) | [Project Page](https://yifanlu0227.github.io/ChatSim/) | [Video](https://youtu.be/5xWz5YBsE5M)
 
 ![teaser](./img/teaser.jpg)
 
