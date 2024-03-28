@@ -213,8 +213,8 @@ data
         |-- camera.xml                  # relibration file from Metashape
         |-- cams_meta.npy               # Camera ext&int calibrated by metashape and transformed to waymo coordinate system.
         |-- poses_bounds.npy            # Camera ext&int calibrated by metashape and transformed to waymo coordinate system (for mcnerf training)
-        |-- poses_bounds_metashape.npy  # Camera ext&int calibrated by metashape
-        |-- poses_bounds_waymo.npy      # Camera ext&int from original waymo dataset
+        |-- poses_bounds_metashape.npy  # Camera ext&int calibrated by metashape (intermediate file, not required)
+        |-- poses_bounds_waymo.npy      # Camera ext&int from original waymo dataset (intermediate file, not required)
         |-- shutters                    # normalized exposure time (mean=0 std=1)
         |-- tracking_info.pkl           # tracking data
         `-- vehi2veh0.npy               # transformation matrix from i-th frame to the first frame.
