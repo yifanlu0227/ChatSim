@@ -80,7 +80,7 @@ def add_model_params(model_setting):
     for obj in data_to.objects: 
         if obj.name == model_obj_name:
             bpy.context.collection.objects.link(obj)
-
+            
     if model_obj_name in bpy.data.objects:
         imported_object = bpy.data.objects[model_obj_name]
         imported_object.name = new_obj_name
@@ -92,7 +92,7 @@ def add_model_params(model_setting):
         if material:
             # 为每个材质添加前缀
             material.name = new_obj_name + "_" + material.name
-    
+
     if target_color is not None:
         target_color['material_key'] = new_obj_name + "_" + target_color['material_key']
 

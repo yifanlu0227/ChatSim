@@ -12,8 +12,8 @@ scene:
   pcd_file: 'point_cloud/000_TOP.ply'
 
   is_wide_angle: &is_wide_angle true
-  frames: 10
-  fps: 20
+  frames: 50
+  fps: 5
 
   # under root directory
   cache_dir: 'results/cache'

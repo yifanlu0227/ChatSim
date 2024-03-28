@@ -25,7 +25,7 @@ def render(render_opt):
 
     set_camera_params(intrinsic, cam2world)
     model_obj_names = []
-
+    
     car_list = render_opt['cars']
     for car_obj in car_list:
         add_model_params(car_obj)

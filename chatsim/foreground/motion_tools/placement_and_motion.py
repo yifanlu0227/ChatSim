@@ -38,9 +38,13 @@ def vehicle_motion(
     dt=0.4,
     total_len=10,
 ):
-
+    
     if placement_result[0] is None:
         return (None, "no placement")
+    
+    if high_level_action_direction == "static":
+        return np.array(placement_result[0:2])[None,...].repeat(total_len, axis=0)
+    
     slow_speed_threshold = (1.5, 2)
     fast_speed_threshold = (10, 25)
     random_speed_threshold = (3, 25)
@@ -129,7 +133,6 @@ def vehicle_motion(
     generated_trajectory = inverse_rot_and_trans(
         generated_trajectory, current_position
     )
-
 
 
     return generated_trajectory

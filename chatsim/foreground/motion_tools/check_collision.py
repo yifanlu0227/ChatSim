@@ -45,7 +45,10 @@ def calculate_car_corners(trajectory, car_length=4.5, car_width=2):
 
     for i in range(1, T):
         direction = trajectory[i] - trajectory[i - 1]
-        direction /= np.linalg.norm(direction)
+        if np.linalg.norm(direction) != 0:
+            direction /= np.linalg.norm(direction)
+        else:
+            direction = np.array([1, 0]) #just assume a random direction, it's not a precise calculation
 
         perpendicular = np.array([-direction[1], direction[0]])
 

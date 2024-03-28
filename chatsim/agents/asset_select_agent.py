@@ -41,7 +41,7 @@ class AssetSelectAgent:
 
             q2 = "(1) 'color', representing in RGB with range from 0 to 255. If the color is not mentioned, the value is just 'default'."
 
-            q3 = "(2) 'type', one of [audi, benz_g, benz_s, mini, cadillac, chevrolet, dodge, ferriari, lamborghini, rover, tank, police_car, porsche, tesla_cybertruck, tesla_roadster, random]. If the type is not mentioned or not in the type list, it defaults to random."
+            q3 = "(2) 'type', one of [audi, benz_g, benz_s, mini, cadillac, chevrolet, dodge, ferriari, lamborghini, rover, tank, police_car, porsche, tesla_cybertruck, tesla_roadster, cone, loader_truck, bulldozer, cement, excavator, sign_fence, random]. If the type is not mentioned or not in the type list, it defaults to random."
 
             q4 = "An example: Given operation statement 'add a black Rover at the front', you should return: {'color':[0,0,0], 'type':'Rover'}"
 
@@ -89,7 +89,7 @@ class AssetSelectAgent:
             q2 = "(1) 'x', vehicle's x position in meter. positive x is heading forward (2) 'y', vehicle's y position in meter. positive y is heading left " + \
                     "(3) 'color', vehicle's color in RGB. 'color' would be 'default' or a list represent the RGB values. If the color is not mentioned, the value is just 'default'."
 
-            q3 = "(4) 'type', one of [audi, benz_g, benz_s, mini, cadillac, chevrolet, dodge, ferriari, lamborghini, rover, tank, police_car, porsche, tesla_cybertruck, tesla_roadster]. "
+            q3 = "(4) 'type', one of [audi, benz_g, benz_s, mini, cadillac, chevrolet, dodge, ferriari, lamborghini, rover, tank, police_car, porsche, tesla_cybertruck, tesla_roadster, cone, loader_truck, bulldozer, cement, excavator, sign_fence]. "
 
             q4 = "(5) 'action', vehicle's driving action, one of ['random', 'straight', 'turn left', 'turn right', 'change lane left', 'change lane right', 'static', 'back']"
 
