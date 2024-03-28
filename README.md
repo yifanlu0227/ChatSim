@@ -128,14 +128,11 @@ mkdir data
 mkdir data/waymo_tfrecords
 mkdir data/waymo_tfrecords/1.4.2
 ```
-Download the [waymo perception dataset v1.4.2](https://waymo.com/open/download/) to the `data/waymo_tfrecords/1.4.2`. In the google cloud console, a correct folder path is `waymo_open_dataset_v_1_4_2/individual_files/training`. Static scene are listed here
+Download the [waymo perception dataset v1.4.2](https://waymo.com/open/download/) to the `data/waymo_tfrecords/1.4.2`. In the google cloud console, a correct folder path is `waymo_open_dataset_v_1_4_2/individual_files/training` or `waymo_open_dataset_v_1_4_2/individual_files/validation`. Static scene are listed here
 
 <details>
-<summary><span style="font-weight: bold;">Static waymo scenes</span></summary>
+<summary><span style="font-weight: bold;">Static waymo scenes in training set</span></summary>
 
-- segment-10061305430875486848_1080_000_1100_000_with_camera_labels
-- segment-10247954040621004675_2180_000_2200_000_with_camera_labels
-- segment-10275144660749673822_5755_561_5775_561_with_camera_labels
 - segment-10676267326664322837_311_180_331_180_with_camera_labels
 - segment-11379226583756500423_6230_810_6250_810_with_camera_labels
 - segment-1172406780360799916_1660_000_1680_000_with_camera_labels
@@ -165,6 +162,15 @@ Download the [waymo perception dataset v1.4.2](https://waymo.com/open/download/)
 - segment-4058410353286511411_3980_000_4000_000_with_camera_labels
 - segment-8811210064692949185_3066_770_3086_770_with_camera_labels
 - segment-9385013624094020582_2547_650_2567_650_with_camera_labels
+
+</details>
+
+<details>
+<summary><span style="font-weight: bold;">Static waymo scenes in validation set</span></summary>
+
+- segment-10061305430875486848_1080_000_1100_000_with_camera_labels
+- segment-10247954040621004675_2180_000_2200_000_with_camera_labels
+- segment-10275144660749673822_5755_561_5775_561_with_camera_labels
 
 </details>
 
