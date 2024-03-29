@@ -196,9 +196,9 @@ python process_waymo_script.py --waymo_data_dir=../data/waymo_tfrecords/1.4.2 --
 This will generate the data folder `data/waymo_multi_view`. 
 
 #### Recalibrate waymo data (or just download our recalibrated files)
-Use Metashape to calibrate images in the `data/waymo_multi_view/{SCENE_NAME}/images` folder and convert them back to the waymo world coordinate. Please follow the tutorial in `data_utils/README.md`. And the final camera extrinsics and intrinsics are stored as `cam_meta.npy` and `poses_bounds.npy`.
+You can download our recalibration files from [here](https://huggingface.co/datasets/yifanlu/waymo_recalibrated_poses/tree/main). After everything is done, you should see 
 
-Or you can download our recalibration files [here](https://huggingface.co/datasets/yifanlu/waymo_recalibrated_poses/tree/main) and run the final step in the tutorial. After converting the recalibrated camera extrinsics and intrinsics back to waymo's coordinate, you should see 
+If you want to do the recalibration yourself, you need to use Metashape to calibrate images in the `data/waymo_multi_view/{SCENE_NAME}/images` folder and convert them back to the waymo world coordinate. Please follow the tutorial in `data_utils/README.md`. And the final camera extrinsics and intrinsics are stored as `cam_meta.npy` and `poses_bounds.npy`.
 
 ```bash
 data
