@@ -100,6 +100,7 @@ def main():
     tfrecord_path = args.tfrecord_dir
     export_data = not args.no_data
     scene_name = tfrecord_path.split('/')[-1].split('.')[0]
+    scene_name = scene_name[scene_name.find('segment'):]
     saving_dir = os.path.join(args.nerf_data_dir, scene_name)
 
     if not isinstance(tfrecord_path, list):   

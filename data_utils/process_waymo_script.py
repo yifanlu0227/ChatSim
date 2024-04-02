@@ -45,10 +45,11 @@ if __name__ == "__main__":
     downloaded_files = os.listdir(args.waymo_data_dir)
 
     for downloaded_file in downloaded_files:
-        if downloaded_file not in scene_setting_dict:
+        downloaded_file_short = downloaded_file[downloaded_file.find('segment'):] # remove the prefix like 'individual_files_training_"
+        if downloaded_file_short not in scene_setting_dict:
             continue
         tfrecord_dir = os.path.join(args.waymo_data_dir, downloaded_file)
-        scene_setting = scene_setting_dict[downloaded_file]
+        scene_setting = scene_setting_dict[downloaded_file_short]
         start_frame = scene_setting['start_frame']
         frame_nums = scene_setting['frame_nums']
         os.system(f'python process_waymo.py --tfrecord_dir "{tfrecord_dir}" --nerf_data_dir {args.nerf_data_dir} --start_frame {start_frame} --frame_nums {frame_nums}')
