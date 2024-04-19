@@ -15,8 +15,18 @@ python process_waymo_script.py --waymo_data_dir=../data/waymo_tfrecords/1.4.2 --
 
 #### Step 2.3: Use `File->Export->Export Cameras` to export the parameters of cameras. Put them in folder `data/waymo_multi_view/{SCENE_NAME}`.
 
+### OR
+### Step 2: Using Colmap to calibrate images and get `sparse/0`
+
+#### Step 2.1: Make sure the format of the image file meets the requirements of colmap: `../data/<your-dataset-name>/<your-case-name>/images`
+
+#### Step 2.2: Run COLMAP SfM:
+```shell
+bash data_utils/local_colmap.sh ../data/<your-dataset-name>/<your-case-name>
+```
+
 
 ### Step 3: Convert to waymo coordinate
 ```
-python convert_metashape_to_waymo_script.py --datadir=../data/waymo_multi_view
+python convert_to_waymo_script.py --datadir=../data/waymo_multi_view --calibration_tool=colmap/metashape
 ```
