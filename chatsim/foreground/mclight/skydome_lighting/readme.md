@@ -46,7 +46,7 @@ we mannually select and split them into train / val set. See [here](https://driv
 
 
 ### HoliCity
-We select outdoor samples from [HoliCity](https://holicity.io/) Panorama dataset. Please download the [resized panorama](https://drive.google.com/file/d/1XkEydyPePKODRUNeWhFcOQ5g-fgqbpgk/view?usp=drive_link), [resized panorama mask](https://drive.google.com/file/d/1qzF8w67qiqg_Im53xuKf6WirBOFfj3oq/view?usp=drive_link), [cropped images](https://drive.google.com/file/d/1I97TtkGXPCjMOUr4RD1L115XnEd4q6iI/view?usp=drive_link) and unzip them into `dataset` folder.
+We select outdoor samples from [HoliCity](https://holicity.io/) Panorama dataset. Please download the [resized panorama](https://drive.google.com/file/d/1XkEydyPePKODRUNeWhFcOQ5g-fgqbpgk/view?usp=drive_link), [resized panorama mask](https://drive.google.com/file/d/1qzF8w67qiqg_Im53xuKf6WirBOFfj3oq/view?usp=drive_link), [cropped images](https://drive.google.com/file/d/1I97TtkGXPCjMOUr4RD1L115XnEd4q6iI/view?usp=drive_link), [meta info](https://drive.google.com/drive/folders/1zbgwNBT-4Pvp-kgXXrOqpC0KhcwPyQ8J?usp=drive_link) and unzip them into `dataset` folder.
 
 If you want to process the panorama data yourself, you can download the original [HoliCity](https://holicity.io/) Panorama Dataset from their [Google Drive](https://drive.google.com/file/d/1Qhy2axPtcYG6lKwalE3CStY_eLpUj9nR/edit). Then, you need to resize the panorama and crop perspective view images with `mc_to_sky/tools/holicity/holicity_preprocess.py`. 
 
