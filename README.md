@@ -7,7 +7,7 @@ Editable Scene Simulation for Autonomous Driving via LLM-Agent Collaboration
 
 ## Requirement
 - Ubuntu version >= 20.04 (for using Blender 3.+)
-- Metashape software (not necessary, we provide recalibrated poses)
+- COLMAP or Metashape software (not necessary, we provide recalibrated poses)
 - OpenAI API Key
 
 ## Installation
@@ -114,7 +114,22 @@ $blender_py -m pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu
 $blender_py setup.py develop
 ```
 
-### Step 5: Install McLight (optional)
+## Step 5: Setup Trajectory Tracking Module (optional)
+If you want to get smoother and more realistic trajectories, you can install the trajectory module and change the parameter `motion_agent-motion_tracking` to True in .yaml file. For installation (both code and pretrained model), you can run the following commands in terminal
+```bash
+pip install frozendict gym==0.26.2 stable-baselines3[extra] protobuf==3.20.1
+
+cd chatsim/foreground
+git clone --recursive git@github.com:MARMOTatZJU/drl-based-trajectory-tracking.git -b v1.0.0
+
+cd drl-based-trajectory-tracking
+source setup-minimum.sh
+```
+
+Then when the parameter `motion_agent-motion_tracking` is set as True, each trajectory will be tracked by this module to make it smoother and more realistic.
+
+
+### Step 6: Install McLight (optional)
 If you want to train the skydome model, follow the READMD in `chatsim/foreground/mclight/skydome_lighting/readme.md`. You can download our provided skydome HDRI in the next section and start the simulation.
 
 
@@ -198,7 +213,7 @@ This will generate the data folder `data/waymo_multi_view`.
 #### Recalibrate waymo data (or just download our recalibrated files)
 You can download our recalibration files from [here](https://huggingface.co/datasets/yifanlu/waymo_recalibrated_poses/tree/main). After everything is done, you should see 
 
-If you want to do the recalibration yourself, you need to use Metashape to calibrate images in the `data/waymo_multi_view/{SCENE_NAME}/images` folder and convert them back to the waymo world coordinate. Please follow the tutorial in `data_utils/README.md`. And the final camera extrinsics and intrinsics are stored as `cam_meta.npy` and `poses_bounds.npy`.
+If you want to do the recalibration yourself, you need to use COLMAP or Metashape to calibrate images in the `data/waymo_multi_view/{SCENE_NAME}/images` folder and convert them back to the waymo world coordinate. Please follow the tutorial in `data_utils/README.md`. And the final camera extrinsics and intrinsics are stored as `cam_meta.npy` and `poses_bounds.npy`.
 
 ```bash
 data
@@ -214,24 +229,13 @@ data
         |-- cams_meta.npy               # Camera ext&int calibrated by metashape and transformed to waymo coordinate system.
         |-- poses_bounds.npy            # Camera ext&int calibrated by metashape and transformed to waymo coordinate system (for mcnerf training)
         |-- poses_bounds_metashape.npy  # Camera ext&int calibrated by metashape (intermediate file, not required)
+        |-- poses_bounds_colmap.npy     # Camera ext&int calibrated by colmap (intermediate file, not required)
         |-- poses_bounds_waymo.npy      # Camera ext&int from original waymo dataset (intermediate file, not required)
         |-- shutters                    # normalized exposure time (mean=0 std=1)
         |-- tracking_info.pkl           # tracking data
         `-- vehi2veh0.npy               # transformation matrix from i-th frame to the first frame.
 ```
 
-### Step 6: Setup Trajectory Tracking Module(optional)
-If you want to get smoother and more realistic trajectories, you can install the trajectory module and change the parameter motion_agent-motion_tracking to True in .yaml file. For installation(both code and pretrained model), you can run the following commands in terminal
-```bash
-pip install frozendict gym==0.26.2 stable-baselines3[extra] protobuf==3.20.1
-
-cd chatsim/foreground
-git clone --recursive git@github.com:MARMOTatZJU/drl-based-trajectory-tracking.git -b v1.0.0
-
-cd drl-based-trajectory-tracking
-source setup-minimum.sh
-```
-Then switch to the original directory to run main.py. And if the parameter motion_agent-motion_tracking is set as True, each trajectory will be tracked by this module to make it smoother and more realistic.
 
 ### Train the model
 

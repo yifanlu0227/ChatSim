@@ -39,12 +39,16 @@ scene_list = [
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--datadir", type=str, help="pre-processed data path")
+    parser.add_argument("-d", "--datadir", type=str,
+                        help="extracted data path")
+    parser.add_argument("-c", "--calibration_tool", type=str,
+                        help="select colmap or metashape")
     args = parser.parse_args()
 
     file_list = os.listdir(args.datadir)
-    
+
     for file_name in file_list:
         if file_name not in scene_list:
             continue
-        os.system('python convert_metashape_to_waymo.py -d {}'.format(os.path.join(args.datadir, file_name)))
+        os.system('python convert_to_waymo.py -d {} -c {}'.format(
+            os.path.join(args.datadir, file_name), args.calibration_tool))
