@@ -143,7 +143,7 @@ mkdir data
 mkdir data/waymo_tfrecords
 mkdir data/waymo_tfrecords/1.4.2
 ```
-Download the [waymo perception dataset v1.4.2](https://waymo.com/open/download/) to the `data/waymo_tfrecords/1.4.2`. In the google cloud console, a correct folder path is `waymo_open_dataset_v_1_4_2/individual_files/training` or `waymo_open_dataset_v_1_4_2/individual_files/validation`. Static scene are listed here
+Download the [waymo perception dataset v1.4.2](https://waymo.com/open/download/) to the `data/waymo_tfrecords/1.4.2`. In the google cloud console, a correct folder path is `waymo_open_dataset_v_1_4_2/individual_files/training` or `waymo_open_dataset_v_1_4_2/individual_files/validation`. Static scenes we have used are listed here
 
 <details>
 <summary><span style="font-weight: bold;">Static waymo scenes in training set</span></summary>
@@ -213,7 +213,7 @@ This will generate the data folder `data/waymo_multi_view`.
 #### Recalibrate waymo data (or just download our recalibrated files)
 You can download our recalibration files from [here](https://huggingface.co/datasets/yifanlu/waymo_recalibrated_poses/tree/main). After everything is done, you should see 
 
-If you want to do the recalibration yourself, you need to use COLMAP or Metashape to calibrate images in the `data/waymo_multi_view/{SCENE_NAME}/images` folder and convert them back to the waymo world coordinate. Please follow the tutorial in `data_utils/README.md`. And the final camera extrinsics and intrinsics are stored as `cam_meta.npy` and `poses_bounds.npy`.
+If you want to do the recalibration yourself, you need to use COLMAP or Metashape to calibrate images in the `data/waymo_multi_view/{SCENE_NAME}/images` folder and convert them back to the waymo world coordinate. Please follow the tutorial in `data_utils/README.md`. And the final camera extrinsics and intrinsics are stored as `cam_meta.npy`.
 
 ```bash
 data
@@ -225,17 +225,32 @@ data
         |-- images_all                  # full waymo images (typically 198 frames)
         |-- map.pkl                     # map data of this scene
         |-- point_cloud                 # point cloud file of the first frame
-        |-- camera.xml                  # relibration file from Metashape
         |-- cams_meta.npy               # Camera ext&int calibrated by metashape and transformed to waymo coordinate system.
-        |-- poses_bounds.npy            # Camera ext&int calibrated by metashape and transformed to waymo coordinate system (for mcnerf training)
-        |-- poses_bounds_metashape.npy  # Camera ext&int calibrated by metashape (intermediate file, not required)
-        |-- poses_bounds_colmap.npy     # Camera ext&int calibrated by colmap (intermediate file, not required)
-        |-- poses_bounds_waymo.npy      # Camera ext&int from original waymo dataset (intermediate file, not required)
+        |-- cams_meta_metashape.npy     # Camera ext&int calibrated by metashape (intermediate file, relative scale, not required by simulation inference)
+        |-- cams_meta_colmap.npy        # Camera ext&int calibrated by colmap (intermediate file, relative scale, not required by simulation inference)
+        |-- cams_meta_waymo.npy         # Camera ext&int from original waymo dataset (intermediate file, not required by simulation inference)
         |-- shutters                    # normalized exposure time (mean=0 std=1)
         |-- tracking_info.pkl           # tracking data
-        `-- vehi2veh0.npy               # transformation matrix from i-th frame to the first frame.
+        |-- vehi2veh0.npy               # transformation matrix from i-th frame's vehicle coordinate to the first frame's vehicle 
+        |-- sparse/0                    # calibration files from COLMAP (intermediate file, not required by simulation inference)
+        `-- camera.xml                  # calibration file from Metashape (intermediate file, not required by simulation inference)
+        coordinate.
 ```
 
+#### Coordinate Convention
+- Points in `point_cloud/000_xxx.pcd` are in ego vehicle's coordinate
+- Camera poses in `camera.xml` are RDF convention (x-right, y-down, z-front).
+- Camera poses in `cams_meta.npy` are in RUB convention (x-right, y-up, z-back).
+- `vehi2veh0.npy` transformation between vehicle coordinate, vehicle coordinates are FLU convention (x-front, y-left, z-up), as waymo paper illustrated.
+
+#### `cams_meta.npy` instruction
+```
+cams_meta.shape = (N, 27)
+cams_meta[:, 0 :12]: flatten camera poses in RUB
+cams_meta[:, 12:21]: flatten camse intrinsics
+cams_meta[:, 21:25]: distortion params [k1, k2, p1, p2]
+cams_meta[:, 25:27]: bounds [z_near, z_far] (not used.)
+```
 
 ### Train the model
 

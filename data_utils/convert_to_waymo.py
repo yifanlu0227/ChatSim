@@ -78,8 +78,14 @@ def intrinsics_from_xml(xml_file):
     width = float(resolution.get('width'))
     height = float(resolution.get('height'))
     f = float(calibration.find('f').text)
-    cx = width/2
-    cy = height/2
+    cx = width/2 + float(calibration.find('cx').text)
+    cy = height/2 + float(calibration.find('cy').text)
+
+    # [k1, k2, p1, p2]
+    dist_params = (float(calibration.find('k1').text), 
+                   float(calibration.find('k2').text), 
+                   float(calibration.find('p1').text), 
+                   float(calibration.find('p2').text))
 
     K = np.array([
         [f, 0, cx],
@@ -87,10 +93,13 @@ def intrinsics_from_xml(xml_file):
         [0, 0,  1]
     ], dtype=np.float32)
 
-    return K, (width, height)
+    return K, (width, height), dist_params
 
 
 def extrinsics_from_xml(xml_file, verbose=False):
+    """
+    Metashape return RDF convention camera poses
+    """
     root = ET.parse(xml_file).getroot()
     transforms = {}
     for e in root.findall('chunk/cameras')[0].findall('camera'):
@@ -108,35 +117,40 @@ def extrinsics_from_xml(xml_file, verbose=False):
     for label in labels_sort:
         extrinsic = np.array([float(x)
                              for x in transforms[label].split()]).reshape(4, 4)
-        extrinsic[:, 1:3] *= -1
+
         view_matrices.append(extrinsic)
 
     return view_matrices, labels_sort
 
 
 def read_xml(data_dir):
+    """
+    We will save `cams_meta_metashape.npy` (RUB convention)
+    not `poses_bounds_metashape.npy` (DRB) now.
+    """
     print("Parsing Metashape results")
-    intrinsic = intrinsics_from_xml(os.path.join(data_dir, 'camera.xml'))
-    extrinsic = extrinsics_from_xml(os.path.join(data_dir, 'camera.xml'))
-    extrinsic = np.stack(extrinsic[0], axis=0)
+    intrinsic, (width, height), dist_params = intrinsics_from_xml(os.path.join(data_dir, 'camera.xml'))
+    poses_RDF, labels_sort = extrinsics_from_xml(os.path.join(data_dir, 'camera.xml')) # (RDF convention. check it)
+    poses_RDF = np.stack(poses_RDF, axis=0) # (N, 4, 4)
 
-    poses = extrinsic
-    poses = np.concatenate(
-        (-poses[:, :, 1:2], poses[:, :, 0:1], poses[:, :, 2:3], poses[:, :, 3:]), axis=-1)
-    poses = poses[:, :3, :]
-    poses_output = np.zeros((poses.shape[0], 17))
+    poses_RUB = np.concatenate(
+        (poses_RDF[:, :, 0:1], -poses_RDF[:, :, 1:2], -poses_RDF[:, :, 2:3], poses_RDF[:, :, 3:]), axis=-1) # (N, 4, 4)
+    poses_RUB = poses_RUB[:, :3, :] # (N, 3, 4)
 
-    f = intrinsic[0][0, 0]
-    w = intrinsic[0][0, -1]*2
-    h = intrinsic[0][1, -1]*2
-    # import ipdb; ipdb.set_trace()
-    hwf = np.array([h, w, f]).reshape(1, 3, 1).repeat(poses.shape[0], axis=0)
+    N = poses_RUB.shape[0]
+    intrinsic = intrinsic.reshape(1,3,3).repeat(N, axis=0) # [N, 3, 3]
+    dist_params = np.array(dist_params).reshape(1,4).repeat(N, axis=0) # [N, 4]
+    bounds = np.array([0.1, 999]).reshape(1,2).repeat(N, axis=0) # [N, 2]
 
-    bds = np.array([0.1, 999]).reshape(1, -1).repeat(poses.shape[0], axis=0)
-    poses = np.concatenate((poses, hwf), axis=-1)
-    poses = poses.reshape(-1, 15)
-    poses = np.concatenate((poses, bds), axis=-1)
-    np.save(os.path.join(data_dir, 'poses_bounds_metashape.npy'), poses)
+    cams_meta = np.concatenate([
+        poses_RUB.reshape(N, -1),
+        intrinsic.reshape(N, -1),
+        dist_params.reshape(N, -1),
+        bounds.reshape(N, -1)
+    ],
+    axis = 1)
+
+    np.save(os.path.join(data_dir, 'cams_meta_metashape.npy'), cams_meta)
 
 
 class NeRFSceneManager(SceneManager):
@@ -329,31 +343,28 @@ class Colamp_Dataset:
 
     def export(self, data_dir):
         n = len(self.poses)
-        poses = deepcopy(self.poses)
+        poses_RUB = deepcopy(self.poses) # (N, 3, 4), already RUB, converted from COLMAP in func. process
         image_list = []
         suffs = ['*.png', '*.PNG', '*.jpg', '*.JPG']
         for suff in suffs:
             image_list += glob(pjoin(data_dir, 'images', suff))
-        h, w, _ = cv2.imread(image_list[0]).shape
-        focal = (self.cam2pix[0, 0, 0] + self.cam2pix[0, 1, 1]) * .5
 
-        # poses_ = torch::cat({ poses_.index({Slc(), Slc(), Slc(1, 2)}),
-        # -poses_.index({Slc(), Slc(), Slc(0, 1)}),
-        # poses_.index({Slc(), Slc(), Slc(2, None)})}, 2);
-        poses = np.concatenate(
-            [-poses[:, :, 1:2], poses[:, :, 0:1], poses[:, :, 2:]], 2)
+        intrinsic = self.cam2pix # (N, 3, 3)
+        
+        dist_params = self.dist_params.reshape(-1, 4)
+        bounds = np.array([0.1, 999]).reshape(1,2).repeat(n, axis=0) # [N, 2]
 
-        hwf = np.zeros([n, 3])
-        hwf[:, 0] = h
-        hwf[:, 1] = w
-        hwf[:, 2] = focal
-        bounds = self.bounds
-        poses_hwf = np.concatenate([poses, hwf[:, :, None]], -1)
-        data = np.concatenate(
-            [poses_hwf.reshape([n, -1]),
-                bounds.reshape([n, -1])], -1)
-        data = np.ascontiguousarray(np.array(data).astype(np.float64))
-        np.save(pjoin(data_dir, '{}.npy'.format('poses_bounds_colmap')), data)
+        cams_meta = np.concatenate([
+            poses_RUB.reshape(n, -1),
+            intrinsic.reshape(n, -1),
+            dist_params.reshape(n, -1),
+            bounds.reshape(n, -1)
+        ],
+        axis = 1)
+
+        cams_meta = np.ascontiguousarray(cams_meta)
+
+        np.save(os.path.join(data_dir, 'cams_meta_colmap.npy'), cams_meta)
 
 
 def read_sparse(data_dir):
@@ -362,38 +373,24 @@ def read_sparse(data_dir):
     dataset.export(data_dir)
 
 
-def align(data_dir, src_poses_bounds="poses_bounds_metashape.npy", dst_pose_bounds="poses_bounds_waymo.npy"):
-    if src_poses_bounds == "poses_bounds_metashape.npy":
+def align(data_dir, src_cams_meta="cams_meta_metashape.npy", dst_cams_meta="cams_meta_waymo.npy"):
+    if src_cams_meta == "cams_meta_metashape.npy":
         print("Aligning Metashape's coordinates with Waymo's coordinates")
-        poses_bounds_source = np.load(os.path.join(
-            data_dir, 'poses_bounds_metashape.npy'))
-    elif src_poses_bounds == "poses_bounds_colmap.npy":
+
+    elif src_cams_meta == "cams_meta_colmap.npy":
         print("Aligning Colmap's coordinates with Waymo's coordinates")
-        poses_bounds_source = np.load(os.path.join(
-            data_dir, 'poses_bounds_colmap.npy'))
-
-    poses_bounds_source = poses_bounds_source[:, :15].reshape(-1, 3, 5)
-
-    extrinsic_source = poses_bounds_source[:, :, :4]
+    
+    cams_meta_data_source = np.load(os.path.join(data_dir, src_cams_meta))
+    cams_meta_data_target = np.load(os.path.join(data_dir, dst_cams_meta))
+    
+    extrinsic_source = cams_meta_data_source[:, :12].reshape(-1, 3, 4)
     last_row = np.zeros((extrinsic_source.shape[0], 1, 4))
     last_row[:, :, -1] = 1
-    # shape [n, 4, 4] extrinsic from metashape
     extrinsic_source = np.concatenate((extrinsic_source, last_row), axis=1)
 
-    hwf = poses_bounds_source[0, :, -1]
-
-    intrinsic_source = np.array([[hwf[2], 0, hwf[1]*0.5+2.37],
-                                 [0, hwf[2], hwf[0]*0.5-1.89],
-                                 [0, 0, 1]])
-
-    poses_bounds_target = np.load(os.path.join(data_dir, dst_pose_bounds))
-
-    poses_bounds_target = poses_bounds_target[:, :15].reshape(-1, 3, 5)
-
-    extrinsic_target = poses_bounds_target[:, :, :4]
+    extrinsic_target = cams_meta_data_target[:, :12].reshape(-1, 3, 4)
     last_row = np.zeros((extrinsic_target.shape[0], 1, 4))
     last_row[:, :, -1] = 1
-    # shape [n, 4, 4] extrinsic from waymo
     extrinsic_target = np.concatenate((extrinsic_target, last_row), axis=1)
 
     scale = np.linalg.norm(extrinsic_source[1, :3, -1] - extrinsic_source[0, :3, -1])  \
@@ -409,12 +406,10 @@ def align(data_dir, src_poses_bounds="poses_bounds_metashape.npy", dst_pose_boun
 
     extrinsic_results = np.zeros_like(extrinsic_source)  # final output
 
-    extrinsic_results[:, :3,
-                      :3] = rotate_source_world_to_target_world @ extrinsic_source[:, :3, :3]
+    extrinsic_results[:, :3, :3] = rotate_source_world_to_target_world @ extrinsic_source[:, :3, :3]
 
     # delta translation between each frame and frame0 in metashape
-    delta_translation_in_source_world = extrinsic_source[:,
-                                                         :3, -1:] - extrinsic_source[0:1, :3, -1:]
+    delta_translation_in_source_world = extrinsic_source[:, :3, -1:] - extrinsic_source[0:1, :3, -1:]
 
     delta_translation_in_target_world = (
         rotate_source_world_to_target_world @ delta_translation_in_source_world) / scale  # convert to waymo axis
@@ -424,51 +419,13 @@ def align(data_dir, src_poses_bounds="poses_bounds_metashape.npy", dst_pose_boun
 
     extrinsic_results[:, -1, -1] = 1
 
-    if src_poses_bounds == "poses_bounds_metashape.npy":
-        poses_bounds = np.load(os.path.join(
-            data_dir, 'poses_bounds_metashape.npy'))
-    elif src_poses_bounds == "poses_bounds_colmap.npy":
-        poses_bounds = np.load(os.path.join(
-            data_dir, 'poses_bounds_colmap.npy'))
+    # update source cam
+    cams_meta_data_source[:, :12] = extrinsic_results[:,:3,:].reshape(-1, 12)
 
-    poses_bounds_extrinsic_and_intrinsic = poses_bounds[:, :15].reshape(
-        -1, 3, 5)
-    poses_bounds_extrinsic_and_intrinsic[:,
-                                         :, :-1] = extrinsic_results[:, :3, :]
-
-    extrinsic_results_to_save = poses_bounds_extrinsic_and_intrinsic.reshape(
-        -1, 15)
-
-    poses_bounds[:, :15] = extrinsic_results_to_save
-    np.save(os.path.join(data_dir, 'poses_bounds.npy'),
-            poses_bounds)       # LLFF
-
-    print("Converting LLFF coordinates to NeRF coordinates")
-    poses_hwf = poses_bounds[:, :15].reshape(-1, 3, 5)
-    poses = poses_hwf[:, :3, :4]
-    hwf = poses_hwf[:, :3, 4]
-    poses = np.concatenate(
-        [poses[:, :, 1:2], -poses[:, :, 0:1], poses[:, :, 2:]], 2)
-    bounds = poses_bounds[:, 15: 17]
-    n_poses = len(poses)
-    intri = np.zeros([n_poses, 3, 3])
-    intri[:, :3, :3] = np.eye(3)
-    intri[:, 0, 0] = hwf[:, 2]
-    intri[:, 1, 1] = hwf[:, 2]
-    intri[:, 0, 2] = hwf[:, 1] * .5
-    intri[:, 1, 2] = hwf[:, 0] * .5
-
-    data = np.concatenate([
-        poses.reshape(n_poses, -1),
-        intri.reshape(n_poses, -1),
-        np.zeros([n_poses, 4]),
-        bounds.reshape(n_poses, -1)
-    ], -1)
-
-    data = np.ascontiguousarray(np.array(data).astype(np.float64))
+    data = np.ascontiguousarray(np.array(cams_meta_data_source).astype(np.float64))
     np.save(os.path.join(data_dir, 'cams_meta.npy'), data)
 
-    if src_poses_bounds == "poses_bounds_colmap.npy":
+    if src_cams_meta=="cams_meta_colmap.npy":
         # convert point3D
         src_point3D_path = os.path.join(data_dir, 'sparse/0/points3D.bin')
         dst_point3D_path = os.path.join(
@@ -501,8 +458,6 @@ def align(data_dir, src_poses_bounds="poses_bounds_metashape.npy", dst_pose_boun
         pcd.points = o3d.utility.Vector3dVector(points3D_in_target_world)
         pcd.colors = o3d.utility.Vector3dVector(points3D_colors / 255.0)
 
-        # breakpoint()
-
         o3d.io.write_point_cloud(dst_point3D_path, pcd)
 
 
@@ -513,7 +468,7 @@ if __name__ == '__main__':
     args, _ = parser.parse_known_args()
     if args.calibration_tool == 'metashape':
         read_xml(args.datadir)
-        align(args.datadir, 'poses_bounds_metashape.npy')
+        align(args.datadir, 'cams_meta_metashape.npy')
     elif args.calibration_tool == 'colmap':
         read_sparse(args.datadir)
-        align(args.datadir, 'poses_bounds_colmap.npy')
+        align(args.datadir, 'cams_meta_colmap.npy')

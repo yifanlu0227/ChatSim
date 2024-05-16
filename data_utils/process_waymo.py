@@ -21,13 +21,6 @@ SINGLE_TRACK_INFO_FILE = True
 DEBUG = False
 MULTIPLE_DIRS = False
 
-# CAMERAS = {
-#     'FRONT': 0,
-#     'FRONT_LEFT': 1,
-#     'FRONT_RIGHT': 2,
-#     'SIDE_LEFT': 3,
-#     'SIDE_RIGHT': 4,
-# }
 CAMERAS = {
     'FRONT': 0,
     'FRONT_LEFT': 1,
@@ -65,7 +58,7 @@ def read_intrinsic(intrinsic_params_vector):
     return dict(zip(['f_u', 'f_v', 'c_u', 'c_v', 'k_1', 'k_2', 'p_1', 'p_2', 'k_3'], intrinsic_params_vector))
 
 
-def get_shutter(filename, save_path, start_frame = 0, end_frame = 40):
+def get_shutter(filename, save_path, start_frame = 0, end_frame = 40, normalize=True):
     if not os.path.exists(save_path):
         os.mkdir(save_path)
 
@@ -84,10 +77,11 @@ def get_shutter(filename, save_path, start_frame = 0, end_frame = 40):
                 shutter_save.append(image.shutter)
     shutter_save = np.array(shutter_save)
 
-    mean = shutter_save.mean()
-    std = shutter_save.std()
+    if normalize:
+        mean = shutter_save.mean()
+        std = shutter_save.std()
 
-    shutter_save = (shutter_save - mean) / std
+        shutter_save = (shutter_save - mean) / std
 
     for i in range(len(shutter_save)):
         filename = f"{save_path}/{str(i).zfill(3)}.txt"
@@ -143,9 +137,9 @@ def main():
             if not DEBUG and export_data:
                 im_array = tf.image.decode_jpeg(im.image).numpy()
                 imageio.imwrite(saving_name, im_array, compress_level=3)
-            pose[im.name-1, :, :] = np.reshape(im.pose.transform, [4, 4])
+            pose[im.name-1, :, :] = np.reshape(im.pose.transform, [4, 4]) # ego vehicle pose (ego vehicle to world)
             im_paths[im.name] = saving_name
-            extrinsic[im.name-1, :, :] = np.reshape(frame.context.camera_calibrations[im.name-1].extrinsic.transform, [4, 4])
+            extrinsic[im.name-1, :, :] = np.reshape(frame.context.camera_calibrations[im.name-1].extrinsic.transform, [4, 4]) # cam to ego vehicle
             if SAVE_INTRINSIC:
                 intrinsic[im.name-1, :] = frame.context.camera_calibrations[im.name-1].intrinsic
                 assert isotropic_focal(read_intrinsic(intrinsic[im.name-1, :])),'Unexpected difference between f_u and f_v.'
@@ -181,7 +175,7 @@ def main():
             assert np.all(tracking_info['intrinsic']==intrinsic) and np.all(tracking_info['width']==width) and np.all(tracking_info['height']==height)
         else:
             tracking_info['intrinsic'],tracking_info['width'],tracking_info['height'] = intrinsic,width,height
-        dict_2_save = {'per_cam_veh_pose':pose,'cam2veh':extrinsic,'im_paths':im_paths,'width':width,'height':height,
+        dict_2_save = {'per_cam_veh_pose':pose, 'cam2veh':extrinsic, 'im_paths':im_paths, 'width':width, 'height':height,
                     'veh2laser':laser_calib, 'pcd_paths': pcd_paths, 'focal': intrinsic[:, 0]}
         if SAVE_INTRINSIC and SINGLE_TRACK_INFO_FILE:
             dict_2_save['intrinsic'] = intrinsic
@@ -264,22 +258,35 @@ def main():
     all_veh_poses_per_cam = []
     all_cam2veh = []
     all_veh2world = []
-    hwf = []
+    all_intrinsic_matrices = []
+    all_distortions = []
     for i in range(args.start_frame, args.start_frame + args.frame_nums):
         frame = data[(0, i)]
         all_veh_poses_per_cam.append(frame['per_cam_veh_pose'][None, ...])
         all_cam2veh.append(frame['cam2veh'][None, ...])
         all_veh2world.append(np.stack([frame['veh_pose'] for j in range(len(CAMERAS))])[None, ...])
-        height = np.ones((len(CAMERAS), 1, 1)) * 1280
-        width = np.ones((len(CAMERAS), 1, 1)) * 1920
-        focal = frame['focal'][:3, None, None]
-        hwf_ = np.concatenate((height, width, focal), axis = 1)[None, ...]
-        hwf.append(hwf_)
+
+        intrinsic_and_dist = frame['intrinsic'] # (5, 9) 9 includes ['f_u', 'f_v', 'c_u', 'c_v', 'k_1', 'k_2', 'p_1', 'p_2', 'k_3']
+        
+        intrinsic_matrix = np.stack(
+                                [np.array([[intrinsic_and_dist[j, 0], 0, intrinsic_and_dist[j, 2]],
+                                          [0, intrinsic_and_dist[j, 1], intrinsic_and_dist[j, 3]],
+                                          [0, 0, 1]]) 
+                                for j in range(len(CAMERAS))] 
+                            ) # [3, 3, 3]
+        all_intrinsic_matrices.append(intrinsic_matrix)
+
+        distortion = np.stack(
+                        [np.array([intrinsic_and_dist[j, 4], intrinsic_and_dist[j, 5], intrinsic_and_dist[j, 6], intrinsic_and_dist[j, 7]])
+                            for j in range(len(CAMERAS))]
+                     ) # [3, 4]
+        all_distortions.append(distortion)
 
     all_veh_poses_per_cam = np.concatenate(all_veh_poses_per_cam, 0)
     all_cam2veh = np.concatenate(all_cam2veh, 0)
     all_veh2world = np.concatenate(all_veh2world, 0)
-    hwf = np.concatenate(hwf, 0)
+    all_intrinsic_matrices = np.concatenate(all_intrinsic_matrices)
+    all_distortions = np.concatenate(all_distortions)
 
     extrinsics = []
     all_vehi2veh0 = []
@@ -298,7 +305,6 @@ def main():
     for cam_i in range(len(CAMERAS)):
         veh2world_per_cam = all_veh_poses_per_cam[:, cam_i]
         world2veh_per_cam = np.stack([invert_transformation(v[:3, :3], v[:3, 3]) for v in veh2world_per_cam])
-        print(world2veh_per_cam.shape)
         cam2veh = all_cam2veh[:, cam_i]
         veh2world = all_veh2world[:, cam_i]
 
@@ -314,43 +320,50 @@ def main():
         pose_0 = np.eye(4)[None, ...]
         vehi2veh0 = np.concatenate((pose_0, vehi2veh0))
         all_vehi2veh0.append(vehi2veh0)
-        extrinsics_ = np.matmul(vehi2veh0, cam2veh)
 
-        trans_mat = np.array([[[ 0.,  0.,  1., 0.],
-                        [-1., -0., -0., 0.],
-                        [-0., -1., -0., 0.],
-                        [-0., 0., -0., 1.]]])
+        cam2veh0 = np.matmul(vehi2veh0, cam2veh) # waymo convention (FLU)
+        cam2veh0_FLU = cam2veh0
 
-        extrinsics_ = np.matmul(extrinsics_, trans_mat)
-        extrinsics.append(extrinsics_[:, None, ...])
+        # waymo convention (FLU) to NeRF convention (RUB)
+        trans_mat = np.array([[[ 0,  0, -1,  0],
+                                [-1,  0,  0,  0],
+                                [0, 1,  0,  0],
+                                [0,  0,  0,  1]]])
+
+
+        cam2veh0_RUB = np.matmul(cam2veh0_FLU, trans_mat)
+        extrinsics.append(cam2veh0_RUB[:, None, ...])
 
     all_vehi2veh0 = np.stack(all_vehi2veh0)
     np.save(os.path.join(saving_dir, "vehi2veh0.npy"), all_vehi2veh0)
 
-    extrinsics = np.concatenate(extrinsics, axis=1)
+    # [FRAME, CAM, 4, 4]
+    extrinsics = np.concatenate(extrinsics, axis=1) # RUB convention
 
-    ########################## opencv to llff coordinates ###########################################
-    extrinsics = extrinsics[:, :, :3, :]
-    extrinsics = np.concatenate([extrinsics[:, :, :, 1:2], extrinsics[:, :, :, 0:1], -extrinsics[:, :, :, 2:3], extrinsics[:, :, :, 3:]], 3)
-    poses = np.concatenate((extrinsics, hwf), 3)
-    poses = poses.reshape(args.frame_nums * len(CAMERAS), 3, 5)   
-    poses = poses.reshape(args.frame_nums * len(CAMERAS), -1)
-    poses_bounds = np.zeros((args.frame_nums * len(CAMERAS), 17))
-    poses_bounds[:, :15] = poses
-    poses_bounds[:, 15] = 0.1
-    poses_bounds[:, 16] = 600.
+    extrinsics = extrinsics[:, :, :3, :4].reshape(args.frame_nums * len(CAMERAS), 3, 4) # [N, 3, 4]
+    all_intrinsic_matrices = all_intrinsic_matrices.reshape(args.frame_nums * len(CAMERAS), 3, 3)
+    all_distortions = all_distortions.reshape(args.frame_nums * len(CAMERAS), 4)
+    N = extrinsics.shape[0]
+    bounds = np.array([0.1, 999]).reshape(1,2).repeat(N, axis=0)
+    
+    cams_meta_data = np.concatenate(
+        [extrinsics.reshape(N, -1),
+         all_intrinsic_matrices.reshape(N, -1),
+         all_distortions.reshape(N, -1),
+         bounds.reshape(N, -1)],
+         axis = 1
+    )
 
-    np.save(os.path.join(saving_dir, 'poses_bounds_waymo.npy'), poses_bounds)
-
-    poses_hwf = poses_bounds[:, :15].reshape(-1, 3, 5)
-    poses = poses_hwf[:, :3, :4]
-    hwf = poses_hwf[:, :3, 4]
+    np.save(os.path.join(saving_dir, 'cams_meta_waymo.npy'), cams_meta_data)
 
 
     ########################## Getting shutter times from tfrecord ###########################################
     print("Getting Shutter Times from tfrecord files")
     save_path = os.path.join(saving_dir ,'shutters')
-    get_shutter(args.tfrecord_dir, save_path, start_frame=args.start_frame, end_frame=args.start_frame + args.frame_nums)
+    get_shutter(args.tfrecord_dir, save_path, start_frame=args.start_frame, end_frame=args.start_frame + args.frame_nums, normalize=True)
+
+    save_path = os.path.join(saving_dir ,'shutters_not_normalize')
+    get_shutter(args.tfrecord_dir, save_path, start_frame=args.start_frame, end_frame=args.start_frame + args.frame_nums, normalize=False)
 
     # rename image files
     for save_idx, img_index in enumerate(range(args.start_frame, args.start_frame + args.frame_nums)):
