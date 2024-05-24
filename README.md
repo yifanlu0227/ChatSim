@@ -70,6 +70,7 @@ cd ..
 cmake . -B build
 cmake --build build --target main --config RelWithDebInfo -j
 ```
+If the mcnerf code is modified, the last two lines should always be executed.
 
 ### Step 3: Install Inpainting tools
 

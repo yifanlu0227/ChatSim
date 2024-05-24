@@ -736,5 +736,11 @@ void ExpRunner::Execute() {
   else if (mode == "render_wide_angle_hdr_shutter") {
     RenderPath(true, true, true);
   }
+  else if (mode == "render_hdr_shutter"){
+    RenderPath(true, true, false);
+  }
+  else {
+    std::cout << "Unknown mode: " << mode << std::endl;
+  }
   
 }
