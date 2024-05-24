@@ -16,9 +16,9 @@ from contextlib import contextmanager
 from functools import partial
 from tqdm import tqdm
 from torchvision.utils import make_grid
-try:
+try: # previous requirements.txt
     from pytorch_lightning.utilities.distributed import rank_zero_only
-except ImportError:
+except ImportError: # new requirements.txt
     from pytorch_lightning.utilities.rank_zero import rank_zero_only
 
 from ldm.util import log_txt_as_img, exists, default, ismap, isimage, mean_flat, count_params, instantiate_from_config
