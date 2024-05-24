@@ -1,4 +1,4 @@
-kornia
+kornia==0.5.0
 transformers
 torchmetrics
 opencv_contrib_python==4.8.1.78
@@ -26,7 +26,7 @@ tqdm
 trimesh
 joblib
 pandas
-albumentations
+albumentations==0.5.2
 hydra-core
 tabulate
 webdataset
@@ -37,7 +37,7 @@ lmdb
 pudb
 omegaconf
 test-tube>=0.7.5
-streamlit
+streamlit>=0.73.1
 einops
 packaging
 easydict

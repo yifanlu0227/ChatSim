@@ -5,6 +5,7 @@ scene:
   scene_name: *scene_name
   
   # suppose these files are under $data_root/$scene_name/ 
+  ext_int_file: 'cams_meta.npy'
   bbox_file: '3d_boxes.npy'
   map_file: 'map.pkl'
   init_img_file: 'wide_init_img.png'
@@ -34,7 +35,7 @@ agents:
       f2nerf_config: wanjinyou_big
       dataset_name: waymo_multi_view
 
-      nerf_quiet_render: true
+      nerf_quiet_render: false
 
   deletion_agent:
     inpaint_dir: chatsim/background/inpainting/latent-diffusion
