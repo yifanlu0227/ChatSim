@@ -3,13 +3,9 @@
 This is an auxiliary library for ChatSim, predicting skydome environment HDR map from single or multi-view images.
 
 ## Installation
-Due to the independent development process, the pytorch lightning version of this part is not compatible with the pytorch lightning version of chatsim, which requires a new conda environment. We apologize for the inconvenience.
 
 ```bash
-conda create -n hdr python=3.9 
-# suppose you have cuda version >= 11.3
-conda activate hdr
-conda install pytorch==1.12.1 torchvision==0.13.1 torchaudio==0.12.1 cudatoolkit=11.3 -c pytorch
+conda activate chatsim
 pip install -r requirements.txt
 ```
 

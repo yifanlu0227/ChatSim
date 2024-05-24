@@ -7,6 +7,8 @@ Editable Scene Simulation for Autonomous Driving via LLM-Agent Collaboration
 
 ## Requirement
 - Ubuntu version >= 20.04 (for using Blender 3.+)
+- Python >= 3.8
+- Pytorch >= 1.13
 - COLMAP or Metashape software (not necessary, we provide recalibrated poses)
 - OpenAI API Key
 
@@ -18,8 +20,8 @@ git clone https://github.com/yifanlu0227/ChatSim.git --recursive
 ```
 
 ### Step 1: Setup environment
-```
-conda create -n chatsim python=3.8
+```bash
+conda create -n chatsim python=3.9
 conda activate chatsim
 
 pip install torch==1.13.1+cu117 torchvision==0.14.1+cu117 torchaudio==0.13.1 --extra-index-url https://download.pytorch.org/whl/cu117
@@ -51,10 +53,11 @@ sudo pacman -S zlib
 
 #### Step 2.2: Download pre-compiled LibTorch
 Taking `torch-1.13.1+cu117` for example.
-```shell
+```bash
 cd chatsim/background/mcnerf
 cd External
 
+# modify the verison if you use a different pytorch installation
 wget https://download.pytorch.org/libtorch/cu117/libtorch-cxx11-abi-shared-with-deps-1.13.1%2Bcu117.zip
 unzip ./libtorch-cxx11-abi-shared-with-deps-1.13.1+cu117.zip
 rm ./libtorch-cxx11-abi-shared-with-deps-1.13.1+cu117.zip
@@ -74,8 +77,9 @@ cmake --build build --target main --config RelWithDebInfo -j
 ```bash
 cd ../inpainting/Inpaint-Anything/
 python -m pip install -e segment_anything
+gdown https://drive.google.com/drive/folders/1wpY-upCo4GIW4wVPnlMh_ym779lLIG2A -O pretrained_models --folder
+gdown https://drive.google.com/drive/folders/1SERTIfS7JYyOOmXWujAva4CDQf-W7fjv -O pytracking/pretrain --folder
 ```
-Go [here](https://drive.google.com/drive/folders/1ST0aRbDRZGli0r7OVVOQvXwtadMCuWXg?usp=sharing) to download [pretrained_models](https://drive.google.com/drive/folders/1wpY-upCo4GIW4wVPnlMh_ym779lLIG2A?usp=sharing), put the directory into `./` and get `./pretrained_models`. Additionally, download [pretrain](https://drive.google.com/drive/folders/1SERTIfS7JYyOOmXWujAva4CDQf-W7fjv?usp=sharing), put the directory into `./pytracking` as `./pytracking/pretrain`.
 
 #### Step 3.2: Setup Image Inpainting
 ```bash
@@ -115,7 +119,7 @@ $blender_py setup.py develop
 ```
 
 ## Step 5: Setup Trajectory Tracking Module (optional)
-If you want to get smoother and more realistic trajectories, you can install the trajectory module and change the parameter `motion_agent-motion_tracking` to True in .yaml file. For installation (both code and pretrained model), you can run the following commands in terminal
+If you want to get smoother and more realistic trajectories, you can install the trajectory module and change the parameter `motion_agent-motion_tracking` to True in .yaml file. For installation (both code and pretrained model), you can run the following commands in terminal. This requires Pytorch >= 1.13.
 ```bash
 pip install frozendict gym==0.26.2 stable-baselines3[extra] protobuf==3.20.1
 
@@ -130,7 +134,7 @@ Then when the parameter `motion_agent-motion_tracking` is set as True, each traj
 
 
 ### Step 6: Install McLight (optional)
-If you want to train the skydome model, follow the READMD in `chatsim/foreground/mclight/skydome_lighting/readme.md`. You can download our provided skydome HDRI in the next section and start the simulation.
+If you want to train the skydome model, follow the README in `chatsim/foreground/mclight/skydome_lighting/readme.md`. You can download our provided skydome HDRI in the next section and start the simulation.
 
 
 ## Usage
@@ -143,53 +147,53 @@ mkdir data
 mkdir data/waymo_tfrecords
 mkdir data/waymo_tfrecords/1.4.2
 ```
-Download the [waymo perception dataset v1.4.2](https://waymo.com/open/download/) to the `data/waymo_tfrecords/1.4.2`. In the google cloud console, a correct folder path is `waymo_open_dataset_v_1_4_2/individual_files/training` or `waymo_open_dataset_v_1_4_2/individual_files/validation`. Static scenes we have used are listed here
+Download the [waymo perception dataset v1.4.2](https://waymo.com/open/download/) to the `data/waymo_tfrecords/1.4.2`. In the google cloud console, a correct folder path is `waymo_open_dataset_v_1_4_2/individual_files/training` or `waymo_open_dataset_v_1_4_2/individual_files/validation`. Some static scenes we have used are listed here.  Use `Filter` to find them quickly, or use [gcloud](https://cloud.google.com/storage/docs/discover-object-storage-gcloud) to download them in batch.
 
 <details>
-<summary><span style="font-weight: bold;">Static waymo scenes in training set</span></summary>
+<summary><span style="font-weight: bold;">Static waymo scenes in training set </span></summary>
 
-- segment-10676267326664322837_311_180_331_180_with_camera_labels
-- segment-11379226583756500423_6230_810_6250_810_with_camera_labels
-- segment-1172406780360799916_1660_000_1680_000_with_camera_labels
-- segment-12879640240483815315_5852_605_5872_605_with_camera_labels
-- segment-13085453465864374565_2040_000_2060_000_with_camera_labels
-- segment-13142190313715360621_3888_090_3908_090_with_camera_labels
-- segment-13196796799137805454_3036_940_3056_940_with_camera_labels
-- segment-13238419657658219864_4630_850_4650_850_with_camera_labels
-- segment-13469905891836363794_4429_660_4449_660_with_camera_labels
-- segment-14004546003548947884_2331_861_2351_861_with_camera_labels
-- segment-14333744981238305769_5658_260_5678_260_with_camera_labels
-- segment-14348136031422182645_3360_000_3380_000_with_camera_labels
-- segment-14424804287031718399_1281_030_1301_030_with_camera_labels
-- segment-14869732972903148657_2420_000_2440_000_with_camera_labels
-- segment-15221704733958986648_1400_000_1420_000_with_camera_labels
-- segment-15270638100874320175_2720_000_2740_000_with_camera_labels
-- segment-15349503153813328111_2160_000_2180_000_with_camera_labels
-- segment-15365821471737026848_1160_000_1180_000_with_camera_labels
-- segment-15868625208244306149_4340_000_4360_000_with_camera_labels
-- segment-16345319168590318167_1420_000_1440_000_with_camera_labels
-- segment-16470190748368943792_4369_490_4389_490_with_camera_labels
-- segment-16608525782988721413_100_000_120_000_with_camera_labels
-- segment-16646360389507147817_3320_000_3340_000_with_camera_labels
-- segment-17761959194352517553_5448_420_5468_420_with_camera_labels
-- segment-3425716115468765803_977_756_997_756_with_camera_labels
-- segment-3988957004231180266_5566_500_5586_500_with_camera_labels
-- segment-4058410353286511411_3980_000_4000_000_with_camera_labels
-- segment-8811210064692949185_3066_770_3086_770_with_camera_labels
-- segment-9385013624094020582_2547_650_2567_650_with_camera_labels
+segment-11379226583756500423_6230_810_6250_810_with_camera_labels
+segment-12879640240483815315_5852_605_5872_605_with_camera_labels
+segment-13196796799137805454_3036_940_3056_940_with_camera_labels
+segment-14333744981238305769_5658_260_5678_260_with_camera_labels
+segment-14424804287031718399_1281_030_1301_030_with_camera_labels
+segment-16470190748368943792_4369_490_4389_490_with_camera_labels
+segment-17761959194352517553_5448_420_5468_420_with_camera_labels
+segment-4058410353286511411_3980_000_4000_000_with_camera_labels
+segment-10676267326664322837_311_180_331_180_with_camera_labels
+segment-1172406780360799916_1660_000_1680_000_with_camera_labels
+segment-13085453465864374565_2040_000_2060_000_with_camera_labels
+segment-13142190313715360621_3888_090_3908_090_with_camera_labels
+segment-13238419657658219864_4630_850_4650_850_with_camera_labels
+segment-13469905891836363794_4429_660_4449_660_with_camera_labels
+segment-14004546003548947884_2331_861_2351_861_with_camera_labels
+segment-14348136031422182645_3360_000_3380_000_with_camera_labels
+segment-14869732972903148657_2420_000_2440_000_with_camera_labels
+segment-15221704733958986648_1400_000_1420_000_with_camera_labels
+segment-15270638100874320175_2720_000_2740_000_with_camera_labels
+segment-15349503153813328111_2160_000_2180_000_with_camera_labels
+segment-15365821471737026848_1160_000_1180_000_with_camera_labels
+segment-15868625208244306149_4340_000_4360_000_with_camera_labels
+segment-16345319168590318167_1420_000_1440_000_with_camera_labels
+segment-16608525782988721413_100_000_120_000_with_camera_labels
+segment-16646360389507147817_3320_000_3340_000_with_camera_labels
+segment-3425716115468765803_977_756_997_756_with_camera_labels
+segment-3988957004231180266_5566_500_5586_500_with_camera_labels
+segment-8811210064692949185_3066_770_3086_770_with_camera_labels
+segment-9385013624094020582_2547_650_2567_650_with_camera_labels
 
 </details>
 
 <details>
-<summary><span style="font-weight: bold;">Static waymo scenes in validation set</span></summary>
+<summary><span style="font-weight: bold;">Static waymo scenes in validation set </span></summary>
 
-- segment-10061305430875486848_1080_000_1100_000_with_camera_labels
-- segment-10247954040621004675_2180_000_2200_000_with_camera_labels
-- segment-10275144660749673822_5755_561_5775_561_with_camera_labels
+segment-10247954040621004675_2180_000_2200_000_with_camera_labels
+segment-10061305430875486848_1080_000_1100_000_with_camera_labels
+segment-10275144660749673822_5755_561_5775_561_with_camera_labels
 
 </details>
 
-After downloading tfrecords, you should see folder structure like 
+After downloading tfrecords, you should see folder structure like the following. If you download the tfrecord files from the console, you will also have prefix like `individual_files_training_` or `individual_files_validation_`.
 
 ```
 data
@@ -202,7 +206,7 @@ data
         |-- ...
         `-- segment-1172406780360799916_1660_000_1680_000_with_camera_labels.tfrecord
 ```
-We extract the images, camera poses, LiDAR file, etc. out of the tfrecord files with the `data_utils/process_waymo_script.py`. 
+We extract the images, camera poses, LiDAR file, etc. out of the tfrecord files with the `data_utils/process_waymo_script.py`:
 
 ```bash
 cd data_utils
@@ -211,7 +215,13 @@ python process_waymo_script.py --waymo_data_dir=../data/waymo_tfrecords/1.4.2 --
 This will generate the data folder `data/waymo_multi_view`. 
 
 #### Recalibrate waymo data (or just download our recalibrated files)
-You can download our recalibration files from [here](https://huggingface.co/datasets/yifanlu/waymo_recalibrated_poses/tree/main). After everything is done, you should see 
+```bash
+cd ../data
+gdown 1ms4yhjH5pEDMhyf_CfzNEYq5kj4HILki
+unzip recalibrated_poses.zip
+rsync -av recalibrated_poses/ waymo_multi_view/
+rm -r recalibrated_poses*
+```
 
 If you want to do the recalibration yourself, you need to use COLMAP or Metashape to calibrate images in the `data/waymo_multi_view/{SCENE_NAME}/images` folder and convert them back to the waymo world coordinate. Please follow the tutorial in `data_utils/README.md`. And the final camera extrinsics and intrinsics are stored as `cam_meta.npy`.
 
@@ -265,7 +275,8 @@ You need to train the McNeRF model for each scene as well as the McLight's skydo
 ```
 cd chatsim/background/mcnerf
 ```
-Make sure you have the `data` folder linking to `../../../data`, and train your model with 
+Make sure you have the `data` folder linking to `../../../data`. If haven't, run `ln -s ../../../data data`.
+Then train your model with 
 
 ```
 python scripts/run.py --config-name=wanjinyou_big \
@@ -298,7 +309,7 @@ python main.py -y ${CONFIG YAML} \
 
 You can try
 ``` bash
-python main.py -y config/waymo-1137.yaml -p 'add a straight driving car in the scene' -s demo
+python main.py -y config/waymo-1137.yaml -p 'add a straight driving car in the scene' [-s demo]
 ```
 
 The rendered results are saved in `results/1137_demo_%Y_%m_%d_%H_%M_%S`. Intermediate files are saved in `results/cache/1137_demo_%Y_%m_%d_%H_%M_%S` for debug and visualization if `save_cache` are enabled in `config/waymo-1137.yaml`.
