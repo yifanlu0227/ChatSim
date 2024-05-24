@@ -43,6 +43,10 @@ class BackgroundRenderingAgent:
             poses_render = scene.current_extrinsics[:, :3, :]
             np.save(os.path.join(self.nerf_data_dir, 'poses_render.npy'), poses_render)
 
+            # remove previous rendered images
+            if os.path.exists(self.nerf_novel_view_dir) and len(os.listdir(self.nerf_novel_view_dir)) > 0:
+                os.system(f"rm -r {self.nerf_novel_view_dir}/*")
+
             current_dir = os.getcwd()
             os.chdir(self.f2nerf_dir) # do not generate intermediate file at root directory
             render_command = f'python scripts/run.py \

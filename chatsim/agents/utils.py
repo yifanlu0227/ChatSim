@@ -10,6 +10,7 @@ import json
 import imageio.v2 as imageio
 import collections
 from termcolor import colored
+from tqdm import tqdm
 
 class Struct:
     def __init__(self, **entries):
@@ -33,15 +34,10 @@ def generate_video(scene, prompt):
     filename = prompt.replace(' ', '_')[:40]
     fps = scene.fps
     print(colored("[Compositing video]", 'blue', attrs=['bold']), "start...")
-    # save to gif
-    imageio.mimsave(os.path.join(video_output_path, f"{filename}.gif"), 
-                    scene.final_video_frames, 
-                    fps=fps
-    )
-    # save to mp4
+
     writer = imageio.get_writer(os.path.join(video_output_path, f"{filename}.mp4"), 
                                 fps=fps)
-    for frame in scene.final_video_frames:
+    for frame in tqdm(scene.final_video_frames):
         writer.append_data(frame)
     writer.close()
     # save frames to folder
