@@ -151,6 +151,18 @@ mkdir data/waymo_tfrecords/1.4.2
 Download the [waymo perception dataset v1.4.2](https://waymo.com/open/download/) to the `data/waymo_tfrecords/1.4.2`. In the google cloud console, a correct folder path is `waymo_open_dataset_v_1_4_2/individual_files/training` or `waymo_open_dataset_v_1_4_2/individual_files/validation`. Some static scenes we have used are listed here.  Use `Filter` to find them quickly, or use [gcloud](https://cloud.google.com/storage/docs/discover-object-storage-gcloud) to download them in batch.
 
 <details>
+<summary><span style="font-weight: bold;">gcloud CLI installation for ubuntu 18.04+ (need sudo) </span></summary>
+
+```bash
+sudo apt-get update
+sudo apt-get install apt-transport-https ca-certificates gnupg curl
+curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo gpg --dearmor -o /usr/share/keyrings/cloud.google.gpg
+echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
+sudo apt-get update && sudo apt-get install google-cloud-cli # for clash proxy user, you may need https://blog.csdn.net/m0_53694308/article/details/134874757
+```
+</details>
+
+<details>
 <summary><span style="font-weight: bold;">Static waymo scenes in training set </span></summary>
 
 segment-11379226583756500423_6230_810_6250_810_with_camera_labels
@@ -193,6 +205,11 @@ segment-10061305430875486848_1080_000_1100_000_with_camera_labels
 segment-10275144660749673822_5755_561_5775_561_with_camera_labels
 
 </details>
+
+If you have installed `gcloud`, you can download the above tfrecords via
+```bash
+bash data_utils/download_waymo.sh data_utils/waymo_static_32.lst data/waymo_tfrecords/1.4.2
+```
 
 After downloading tfrecords, you should see folder structure like the following. If you download the tfrecord files from the console, you will also have prefix like `individual_files_training_` or `individual_files_validation_`.
 
