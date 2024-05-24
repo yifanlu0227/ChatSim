@@ -304,7 +304,14 @@ class MotionAgent:
                 direction[-1,0] = direction[-2,0]
                 motion_result = np.concatenate((motion_result,direction),axis=1) # (frames, 3)
                 if self.motion_tracking:
-                    from simulator import TrajectoryTracker
+                    try:
+                        from simulator import TrajectoryTracker
+                    except ModuleNotFoundError:
+                        error_msg1 = (f"{colored('[ERROR]', color='red', attrs=['bold'])} Trajectory Tracking Module is not installed.\n")
+                        error_msg2 = "\nYou can 1) Install Installation README's Step 5: Setup Trajectory Tracking Module"
+                        error_msg3 = "\n     Or 2) set ['motion_agent']['motion_tracking'] to False in config.\n"
+                        raise ModuleNotFoundError(error_msg1 + error_msg2 + error_msg3)
+
                     reference_line = interpolate_uniformly(motion_result, int(scene.frames*scene.fps/10))
                     reference_line = [
                         (reference_line[i,0], reference_line[i,1])

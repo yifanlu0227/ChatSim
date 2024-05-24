@@ -29,7 +29,7 @@ agents:
       is_wide_angle: *is_wide_angle
       scene_name: *scene_name
       f2nerf_dir: chatsim/background/mcnerf         # directory of mcnerf (mcnerf uses f2nerf as the backbone)
-      nerf_exp_name: exp_0304_coeff_0.15                  # experiment name, corresponding to your trained model
+      nerf_exp_name: exp_coeff_0.3                  # experiment name, corresponding to your trained model
       rendering_mode: render_wide_angle_hdr_shutter # `render_wide_angle_hdr_shutter` if `is_wide_angle` is true, otherwise `render_hdr_shutter`
 
       f2nerf_config: wanjinyou_big                  # f2nerf config name
@@ -55,7 +55,7 @@ agents:
     # because it calls nerf rendering each frame.
     use_surrounding_lighting: false                  
 
-    blender_python_dir: chatsim/foreground/Blender/blender-3.5.1-linux-x64/blender  # directory of blender
+    blender_dir: chatsim/foreground/Blender/blender-3.5.1-linux-x64/blender  # directory of blender
     blender_utils_dir: chatsim/foreground/Blender/utils/blender_utils               # directory of blender utils
 
     estimate_depth: false                                   # whether to estimate depth

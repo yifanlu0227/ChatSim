@@ -14,7 +14,7 @@ import sys
 class ForegroundRenderingAgent:
     def __init__(self, config):
         self.config = config
-        self.blender_python_dir = config["blender_python_dir"]
+        self.blender_dir = config["blender_dir"]
         self.blender_utils_dir = config["blender_utils_dir"]
 
         # skydome lighting
@@ -281,9 +281,8 @@ class ForegroundRenderingAgent:
 
         with open(yaml_path, "w", encoding="utf-8") as f:
             yaml.dump(data=blender_dict, stream=f, allow_unicode=True)
-
         os.system(
-            f"{self.blender_python_dir} -b --python {self.blender_utils_dir}/main_multicar.py -- {yaml_path} 1> {os.path.join(scene.cache_dir, 'blender.log')}"
+            f"{self.blender_dir} -b --python {self.blender_utils_dir}/main_multicar.py -- {yaml_path} 1> {os.path.join(scene.cache_dir, 'blender.log')}"
         )
 
     def func_compose_with_new_depth_single_frame(self, scene, frame_id):

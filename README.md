@@ -21,7 +21,7 @@ git clone https://github.com/yifanlu0227/ChatSim.git --recursive
 
 ### Step 1: Setup environment
 ```bash
-conda create -n chatsim python=3.9
+conda create -n chatsim python=3.9 git-lfs
 conda activate chatsim
 
 pip install torch==1.13.1+cu117 torchvision==0.14.1+cu117 torchaudio==0.13.1 --extra-index-url https://download.pytorch.org/whl/cu117
@@ -247,13 +247,14 @@ data
         coordinate.
 ```
 
-#### Coordinate Convention
+**Coordinate Convention**
+
 - Points in `point_cloud/000_xxx.pcd` are in ego vehicle's coordinate
 - Camera poses in `camera.xml` are RDF convention (x-right, y-down, z-front).
 - Camera poses in `cams_meta.npy` are in RUB convention (x-right, y-up, z-back).
 - `vehi2veh0.npy` transformation between vehicle coordinate, vehicle coordinates are FLU convention (x-front, y-left, z-up), as waymo paper illustrated.
 
-#### `cams_meta.npy` instruction
+**`cams_meta.npy` instruction**
 ```
 cams_meta.shape = (N, 27)
 cams_meta[:, 0 :12]: flatten camera poses in RUB
@@ -262,14 +263,40 @@ cams_meta[:, 21:25]: distortion params [k1, k2, p1, p2]
 cams_meta[:, 25:27]: bounds [z_near, z_far] (not used.)
 ```
 
-### Train the model
 
-#### Download pretrain for quick start-up
-You need to train the McNeRF model for each scene as well as the McLight's skydome estimation network. To get started quickly, you can download our skydome estimation and some Blender 3D assets.
+#### Download Blender 3D Assets
+- [Blender Assets](https://huggingface.co/datasets/yifanlu/Blender_3D_assets/tree/main). Download with following command and make sure they are in `data/blender_assets`. 
+```bash
+# suppose you are in ChatSim/data
+git lfs install
+git clone https://huggingface.co/datasets/yifanlu/Blender_3D_assets
+cd Blender_3D_assets
+git lfs pull # about 1GB, You might meet `Error updating the Git index: (1/1), 1.0 GB | 7.4 MB/s` when finishing `git lfs pull`. It doesn't matter. Please continue.
 
-- [Skydome HDRI](https://huggingface.co/datasets/yifanlu/Skydome_HDRI/tree/main). Download and put them in `data/waymo_skydome`
-- [Blender Assets](https://huggingface.co/datasets/yifanlu/Blender_3D_assets/tree/main). Download and put them in `data/blender_assets`. Our 3D models are collected from the Internet. We tried our best to contact the author of the model and ensure that copyright issues are properly dealt with (our open source projects are not for profit). If you are the author of a model and our behavior infringes your copyright, please contact us immediately and we will delete the model.
+cd ..
+mv Blender_3D_assets/assets.zip ./
+unzip assets.zip
+rm assets.zip
+rm -rf Blender_3D_assets
+mv assets blender_assets
+```
 
+Our 3D models are collected from the Internet. We tried our best to contact the author of the model and ensure that copyright issues are properly dealt with (our open source projects are not for profit). If you are the author of a model and our behavior infringes your copyright, please contact us immediately and we will delete the model.
+
+#### Download skydome HDRI
+- [Skydome HDRI](https://huggingface.co/datasets/yifanlu/Skydome_HDRI/tree/main). Download with the following command and make sure they are in `data/waymo_skydome`. 
+```bash
+# suppose you are in ChatSim/data
+git lfs install
+git clone https://huggingface.co/datasets/yifanlu/Skydome_HDRI
+mv Skydome_HDRI/waymo_skydome ./
+rm -rf Skydome_HDRI
+```
+
+You can also train the skydome estimation network yourself. Go to `chatsim/foreground/mclight/skydome_lighting` and follow `chatsim/foreground/mclight/skydome_lighting/readme.md` for the training.
+
+
+## Train and simulation
 
 ### Train McNeRF
 ```
@@ -289,16 +316,16 @@ You can simply run scripts like `bash train-1137.sh` for training and `bash rend
 
 
 #### Start simulation
-
+Set the API to environment variable. Also set `OPENAI_API_BASE` if you have network issue (especially in China mainland).
 ```bash
 export OPENAI_API_KEY=<your api key>
 ```
 
 Now you can start the simulation with
-``` bash
+```bash
 python main.py -y ${CONFIG YAML} \
                -p ${PROMPT} \
-               -s ${SIMULATION NAME}
+               [-s ${SIMULATION NAME}]
 ```
 
 - `${CONFIG YAML}` specifies the scene information, and yamls are stored in `config` folder. e.g. `config/waymo-1137.yaml`.
@@ -309,7 +336,7 @@ python main.py -y ${CONFIG YAML} \
 
 You can try
 ``` bash
-python main.py -y config/waymo-1137.yaml -p 'add a straight driving car in the scene' [-s demo]
+python main.py -y config/waymo-1137.yaml -p 'add a straight driving car in the scene' 
 ```
 
 The rendered results are saved in `results/1137_demo_%Y_%m_%d_%H_%M_%S`. Intermediate files are saved in `results/cache/1137_demo_%Y_%m_%d_%H_%M_%S` for debug and visualization if `save_cache` are enabled in `config/waymo-1137.yaml`.
@@ -328,9 +355,6 @@ The rendered results are saved in `results/1137_demo_%Y_%m_%d_%H_%M_%S`. Interme
 - `config_dict['agents']['foreground_rendering_agent']['skydome_hdri_idx']` is the filename (w.o. extension) we choose from `data/waymo_skydome/${SCENE_NAME}/`. It is the skydome HDRI estimation from the first frame(`'000'`) by default, but you can manually select a better estimation from another frame. To view the HDRI, we recommend the [VERIV](https://github.com/mcrescas/veriv) for vscode and [tev](https://github.com/Tom94/tev) for desktop environment.
 
 
-
-### Train McLight's Skydome estimation network
-Go to `chatsim/foreground/mclight/skydome_lighting` and follow `chatsim/foreground/mclight/skydome_lighting/readme.md` for the training.
 
 ## Todo
 - [x] arxiv paper release

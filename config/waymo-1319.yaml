@@ -48,7 +48,7 @@ agents:
 
     use_surrounding_lighting: false # only use skydome lighting
 
-    blender_python_dir: chatsim/foreground/Blender/blender-3.5.1-linux-x64/blender
+    blender_dir: chatsim/foreground/Blender/blender-3.5.1-linux-x64/blender
     blender_utils_dir: chatsim/foreground/Blender/utils/blender_utils
 
     estimate_depth: false
