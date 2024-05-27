@@ -17,36 +17,36 @@ python process_waymo_script.py --waymo_data_dir=../data/waymo_tfrecords/1.4.2 --
 
 #### Step 2.2: Run COLMAP sparse reconstruction:
 ```shell
-bash data_utils/local_colmap.sh ../data/waymo_multi_view/{SCENE_NAME}
+bash run_colmap.sh ../data/waymo_multi_view/${SCENE_NAME}
 ```
 
-This will generate `sparse/0` folder in your `../data/waymo_multi_view/{SCENE_NAME}`
+This will generate `colmap/sparse_undistorted` folder in your `../data/waymo_multi_view/${SCENE_NAME}`
 </details>
 
 <details>
 <summary>Metashape usage</summary>
 
-### Step 2: Using Metashape to calibrate images and get `camera.xml`
+Using Metashape to calibrate images and get `camera.xml`. You need a metashape software with GUI.
 
-#### Step 2.1: Use `Workflow->Add Folder` to upload the images from `data/waymo_multi_view/{SCENE_NAME}/images`, and then choose `Single Cameras` as follows:
+First, use `Workflow->Add Folder` to upload the images from `data/waymo_multi_view/${SCENE_NAME}/images`, and then choose `Single Cameras` as follows:
 <img src="./instruction_metashape/single_camera.jpg" width="400" />
 
-#### Step 2.2: Use `Workflow->Align Photos` to calibrate the images with the following configuration:
+Second, use `Workflow->Align Photos` to calibrate the images with the following configuration:
 <img src="./instruction_metashape/align.jpg" width="400" />
 
-#### Step 2.3: Use `File->Export->Export Cameras` to export the parameters of cameras. Put them in folder `data/waymo_multi_view/{SCENE_NAME}`.
+Finally, use `File->Export->Export Cameras` to export the parameters of cameras. Put them in folder `data/waymo_multi_view/${SCENE_NAME}`.
 </details>
 
 ### Step 3: Convert to waymo coordinate (real-world scale)
 
-If you use COLMAP in Step 2, run the following command
+If you use COLMAP in Step 2, use the following command to convert to waymo's coordinate. But since we have include this in `run_colmap.sh`, you don't need to run it again. 
 ```bash
-python convert_to_waymo_script.py --datadir=../data/waymo_multi_view --calibration_tool=colmap
+python convert_to_waymo.py -d ../data/waymo_multi_view/${SCENE_NAME} -c colmap
 ```
 
-If you use Metashape in Step 2, change `--calibration_tool=metashape`
+If you use Metashape in Step 2, change `--calibration_tool=metashape`. You need to run it mannually.
 
 ```bash
-python convert_to_waymo_script.py --datadir=../data/waymo_multi_view --calibration_tool=metashape
+python convert_to_waymo.py -d ../data/waymo_multi_view/${SCENE_NAME} -c metashape
 ```
 

@@ -13,9 +13,9 @@ from typing import Mapping, Optional, Sequence, Text, Tuple, Union
 import struct
 import open3d as o3d
 from collections import OrderedDict
+from termcolor import colored
 
-
-def load_colmap_sparse(path_to_model_file):
+def load_colmap_sparse_points(path_to_model_file):
     """
     see: src/base/reconstruction.cc
         void Reconstruction::ReadPoints3DBinary(const std::string& path)
@@ -123,7 +123,7 @@ def extrinsics_from_xml(xml_file, verbose=False):
     return view_matrices, labels_sort
 
 
-def read_xml(data_dir):
+def read_xml_save_npy(data_dir):
     """
     We will save `cams_meta_metashape.npy` (RUB convention)
     not `poses_bounds_metashape.npy` (DRB) now.
@@ -160,13 +160,20 @@ class NeRFSceneManager(SceneManager):
     google3/third_party/py/pycolmap/scene_manager.py
     """
 
-    def __init__(self, data_dir):
-        # COLMAP
-        if os.path.exists(pjoin(data_dir, 'sparse', '0')):
-            sfm_dir = pjoin(data_dir, 'sparse', '0')
-        # hloc
+    def __init__(self, data_dir, use_undistorted=False):
+        """
+        use_undistorted: bool
+            gaussians splatting needs undistorted camera intrinsics,
+            McNeRF does not need undistorted camera intrinsics.
+
+            But the images in the root folder is distorted. The undistorted version is in data_dir/colmap/sparse_undistorted/images
+        """
+        # COLMAP, undistorted
+        if use_undistorted:
+            sfm_dir = pjoin(data_dir, 'colmap/sparse_undistorted/sparse')
+        # COLMAP, distorted
         else:
-            sfm_dir = pjoin(data_dir, 'hloc_sfm')
+            sfm_dir = pjoin(data_dir, 'colmap/sparse/not_align/0')
 
         assert os.path.exists(sfm_dir)
         super(NeRFSceneManager, self).__init__(sfm_dir)
@@ -280,48 +287,6 @@ class Colamp_Dataset:
         img_idx = np.array(sort_img_idx, dtype=np.int32)
         self.poses = self.poses[sort_img_idx]
 
-        # calc near-far bounds
-        self.bounds = np.zeros([self.n_images, 2], dtype=np.float32)
-        name_to_ids = scene_manager.name_to_image_id
-        points3D = scene_manager.points3D
-        points3D_ids = scene_manager.point3D_ids
-        point3D_id_to_images = scene_manager.point3D_id_to_images
-        image_id_to_image_idx = np.zeros(self.n_images + 10, dtype=np.int32)
-
-        print("num of idx:", len(image_id_to_image_idx), ";num of id:",
-              len(name_to_ids), ";num of in:", len(self.names))
-
-        for image_name in self.names:
-            image_id_to_image_idx[
-                name_to_ids[image_name]] = sorted_image_names.index(image_name)
-
-        vis_arr = []
-        for pts_i in range(len(points3D)):
-            cams = np.zeros([self.n_images], dtype=np.uint8)
-            images_ids = point3D_id_to_images[points3D_ids[pts_i]]
-            for image_info in images_ids:
-                image_id = image_info[0]
-                image_idx = image_id_to_image_idx[image_id]
-                cams[image_idx] = 1
-            vis_arr.append(cams)
-
-        vis_arr = np.stack(vis_arr, 1)  # [n_images, n_pts ]
-
-        for img_i in range(self.n_images):
-            vis = vis_arr[img_i]
-            pts = points3D[vis == 1]
-            c2w = np.diag([1., 1., 1., 1.])
-            c2w[:3, :4] = self.poses[img_i]
-            w2c = np.linalg.inv(c2w)
-            z_vals = (w2c[None, 2, :3] * pts).sum(-1) + w2c[None, 2, 3]
-            depth = -z_vals
-            near_depth, far_depth = np.percentile(depth, 1.), np.percentile(
-                depth, 99.)
-            near_depth = near_depth * .5
-            far_depth = far_depth * 5.
-            self.bounds[img_i, 0], self.bounds[img_i,
-                                               1] = near_depth, far_depth
-
         # Move all to numpy
         def proc(x):
             return np.ascontiguousarray(np.array(x).astype(np.float64))
@@ -329,7 +294,6 @@ class Colamp_Dataset:
         self.poses = proc(self.poses)
         self.cam2pix = proc(
             np.tile(self.cam2pix[None], (len(self.poses), 1, 1)))
-        self.bounds = proc(self.bounds)
         if self.params is not None:
             dist_params = [
                 self.params['k1'], self.params['k2'], self.params['p1'],
@@ -367,8 +331,8 @@ class Colamp_Dataset:
         np.save(os.path.join(data_dir, 'cams_meta_colmap.npy'), cams_meta)
 
 
-def read_sparse(data_dir):
-    print("Parsing Colmap results")
+def read_sparse_save_npy(data_dir):
+    print("Parsing Colmap results to cams_meta_colmap.npy")
     dataset = Colamp_Dataset(data_dir)
     dataset.export(data_dir)
 
@@ -423,15 +387,20 @@ def align(data_dir, src_cams_meta="cams_meta_metashape.npy", dst_cams_meta="cams
     cams_meta_data_source[:, :12] = extrinsic_results[:,:3,:].reshape(-1, 12)
 
     data = np.ascontiguousarray(np.array(cams_meta_data_source).astype(np.float64))
+    print(f"\n{colored('[Imporant]', 'green', attrs=['bold'])} Now cams_meta.npy aligns from {src_cams_meta}")
     np.save(os.path.join(data_dir, 'cams_meta.npy'), data)
 
     if src_cams_meta=="cams_meta_colmap.npy":
-        # convert point3D
-        src_point3D_path = os.path.join(data_dir, 'sparse/0/points3D.bin')
-        dst_point3D_path = os.path.join(
-            data_dir, 'sparse/0/points3D_waymo.ply')
+        # also save a copy in colmap/sparse_undistorted
+        print("Also save a copy of cams_meta.npy in colmap/sparse_undistorted")
+        np.save(os.path.join(data_dir, 'colmap/sparse_undistorted/cams_meta.npy'), data)
 
-        points = load_colmap_sparse(src_point3D_path)
+        # convert point3D
+        src_point3D_path = os.path.join(data_dir, 'colmap/sparse_undistorted/sparse/points3D.bin')
+        dst_point3D_path = os.path.join(
+            data_dir, 'colmap/sparse_undistorted/points3D_waymo.ply')
+
+        points = load_colmap_sparse_points(src_point3D_path)
         points3D = points['xyz']
         points3D_colors = points['rgb']
 
@@ -443,15 +412,12 @@ def align(data_dir, src_cams_meta="cams_meta_metashape.npy", dst_cams_meta="cams
             delta_translation_in_source_world, axis=-1)
         delta_translation_in_target_world = (
             rotate_source_world_to_target_world @ delta_translation_in_source_world) / scale
-        print(delta_translation_in_target_world.shape,
-              extrinsic_target[0, :3, -1].shape)
 
         extrinsic_target = extrinsic_target[0,
                                             :3, -1][:, np.newaxis, np.newaxis]
         points3D_in_target_world = delta_translation_in_target_world + \
             extrinsic_target[0, :3, -1]
 
-        print(points3D_in_target_world.shape, points3D_in_target_world[0])
         # save with open3d
         pcd = o3d.geometry.PointCloud()
         points3D_in_target_world = np.squeeze(points3D_in_target_world)
@@ -467,8 +433,9 @@ if __name__ == '__main__':
     parser.add_argument('-c', '--calibration_tool', type=str)
     args, _ = parser.parse_known_args()
     if args.calibration_tool == 'metashape':
-        read_xml(args.datadir)
+        read_xml_save_npy(args.datadir)  # this will generate cams_meta_metashape.npy
         align(args.datadir, 'cams_meta_metashape.npy')
+
     elif args.calibration_tool == 'colmap':
-        read_sparse(args.datadir)
+        read_sparse_save_npy(args.datadir) # this will generate cams_meta_colmap.npy
         align(args.datadir, 'cams_meta_colmap.npy')
