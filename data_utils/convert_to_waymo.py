@@ -78,14 +78,19 @@ def intrinsics_from_xml(xml_file):
     width = float(resolution.get('width'))
     height = float(resolution.get('height'))
     f = float(calibration.find('f').text)
-    cx = width/2 + float(calibration.find('cx').text)
-    cy = height/2 + float(calibration.find('cy').text)
 
-    # [k1, k2, p1, p2]
-    dist_params = (float(calibration.find('k1').text), 
-                   float(calibration.find('k2').text), 
-                   float(calibration.find('p1').text), 
-                   float(calibration.find('p2').text))
+    # leads to bad nerf training results, set to zero
+    # cx = width/2 + float(calibration.find('cx').text)
+    # cy = height/2 + float(calibration.find('cy').text)
+    cx = width/2 
+    cy = height/2
+
+    # leads to bad nerf training results, set to zero
+    # dist_params = (float(calibration.find('k1').text), 
+    #                float(calibration.find('k2').text), 
+    #                float(calibration.find('p1').text), 
+    #                float(calibration.find('p2').text))
+    dist_params = (0., 0., 0., 0.)
 
     K = np.array([
         [f, 0, cx],
@@ -357,8 +362,8 @@ def align(data_dir, src_cams_meta="cams_meta_metashape.npy", dst_cams_meta="cams
     last_row[:, :, -1] = 1
     extrinsic_target = np.concatenate((extrinsic_target, last_row), axis=1)
 
-    scale = np.linalg.norm(extrinsic_source[1, :3, -1] - extrinsic_source[0, :3, -1])  \
-        / np.linalg.norm(extrinsic_target[1, :3, -1] - extrinsic_target[0, :3, -1])  # unit length scale
+    scale = np.linalg.norm(extrinsic_source[3, :3, -1] - extrinsic_source[0, :3, -1])  \
+        / np.linalg.norm(extrinsic_target[3, :3, -1] - extrinsic_target[0, :3, -1])  # unit length scale
 
     rotate_0_target = extrinsic_target[0, :3, :3]
     rotate_0_source = extrinsic_source[0, :3, :3]
@@ -387,12 +392,15 @@ def align(data_dir, src_cams_meta="cams_meta_metashape.npy", dst_cams_meta="cams
     cams_meta_data_source[:, :12] = extrinsic_results[:,:3,:].reshape(-1, 12)
 
     data = np.ascontiguousarray(np.array(cams_meta_data_source).astype(np.float64))
-    print(f"\n{colored('[Imporant]', 'green', attrs=['bold'])} Now cams_meta.npy aligns from {src_cams_meta}")
-    np.save(os.path.join(data_dir, 'cams_meta.npy'), data)
+
+    if src_cams_meta=="cams_meta_metashape.npy":
+        print(f"\n{colored('[Imporant]', 'green', attrs=['bold'])} save to cams_meta.npy")
+        np.save(os.path.join(data_dir, 'cams_meta.npy'), data)
 
     if src_cams_meta=="cams_meta_colmap.npy":
-        # also save a copy in colmap/sparse_undistorted
-        print("Also save a copy of cams_meta.npy in colmap/sparse_undistorted")
+        # save in colmap/sparse_undistorted
+        print(f"\n{colored('[Imporant]', 'green', attrs=['bold'])} Save to colmap/sparse_undistorted/cams_meta.npy")
+        print(f"cams_meta.npy from metashape (in the root folder) will not be overwritten.")
         np.save(os.path.join(data_dir, 'colmap/sparse_undistorted/cams_meta.npy'), data)
 
         # convert point3D
@@ -408,21 +416,32 @@ def align(data_dir, src_cams_meta="cams_meta_metashape.npy", dst_cams_meta="cams
         delta_translation_in_source_world = points3D - \
             np.expand_dims(extrinsic_source[0, :3, -1], axis=0)
 
-        delta_translation_in_source_world = np.expand_dims(
-            delta_translation_in_source_world, axis=-1)
+        # [N_points, 3, 1]
+        delta_translation_in_source_world = delta_translation_in_source_world[..., np.newaxis]
         delta_translation_in_target_world = (
             rotate_source_world_to_target_world @ delta_translation_in_source_world) / scale
+        
+        # [1, 3, 1]
+        translation_0_target = extrinsic_target[0:1, :3, -1:]
+        points3D_in_target_world = delta_translation_in_target_world + translation_0_target
 
-        extrinsic_target = extrinsic_target[0,
-                                            :3, -1][:, np.newaxis, np.newaxis]
-        points3D_in_target_world = delta_translation_in_target_world + \
-            extrinsic_target[0, :3, -1]
+        # set up sfm points
+        sfm_points = np.squeeze(points3D_in_target_world)
+        sfm_colors = points3D_colors / 255.0
+
+        # incorperate LiDAR into initialization
+        lidar_open3d = o3d.io.read_point_cloud(os.path.join(data_dir, 'point_cloud/000_TOP.ply'))
+        # we only keep x > 0 points
+        lidar_points = np.array(lidar_open3d.points)
+        lidar_colors = np.full(lidar_points.shape, 0.3) 
+        mask = lidar_points[:, 0] > 0
+        lidar_points = lidar_points[mask]
+        lidar_colors = lidar_colors[mask]
 
         # save with open3d
         pcd = o3d.geometry.PointCloud()
-        points3D_in_target_world = np.squeeze(points3D_in_target_world)
-        pcd.points = o3d.utility.Vector3dVector(points3D_in_target_world)
-        pcd.colors = o3d.utility.Vector3dVector(points3D_colors / 255.0)
+        pcd.points = o3d.utility.Vector3dVector(np.concatenate([sfm_points, lidar_points], axis=0))
+        pcd.colors = o3d.utility.Vector3dVector(np.concatenate([sfm_colors, lidar_colors], axis=0))
 
         o3d.io.write_point_cloud(dst_point3D_path, pcd)
 
