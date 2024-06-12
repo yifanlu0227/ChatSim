@@ -4,6 +4,3 @@
 [submodule "chatsim/background/mcnerf/External/yaml-cpp"]
 	path = chatsim/background/mcnerf/External/yaml-cpp
 	url = https://github.com/jbeder/yaml-cpp.git
-[submodule "chatsim/background/gaussian-splatting/submodules/simple-knn"]
-	path = chatsim/background/gaussian-splatting/submodules/simple-knn
-	url = https://gitlab.inria.fr/bkerbl/simple-knn.git
