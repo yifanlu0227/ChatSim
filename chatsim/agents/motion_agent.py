@@ -264,15 +264,19 @@ class MotionAgent:
 
             one_added_car['placement_result'] = placement_result #（xc,yc,theta,xs,ys,xe,ye)
             
-            motion_result = vehicle_motion(
-                transformed_map_data,
-                scene.all_current_vertices[:,::2,:2] if scene.all_current_vertices.shape[0]!=0 else scene.all_current_vertices,
-                placement_result=one_added_car['placement_result'],
-                high_level_action_direction=one_added_car["action"],
-                high_level_action_speed=one_added_car["speed"],
-                dt=1/scene.fps,
-                total_len=scene.frames,
-            )
+            try:
+                motion_result = vehicle_motion(
+                    transformed_map_data,
+                    scene.all_current_vertices[:,::2,:2] if scene.all_current_vertices.shape[0]!=0 else scene.all_current_vertices,
+                    placement_result=one_added_car['placement_result'],
+                    high_level_action_direction=one_added_car["action"],
+                    high_level_action_speed=one_added_car["speed"],
+                    dt=1/scene.fps,
+                    total_len=scene.frames,
+                )
+            except ValueError as e:
+                print(f"{colored('[Motion Agent] Error: Potentially no feasible destination can be found.', color='red', attrs=['bold'])} {e}")
+                raise ValueError("No feasible destination can be found.")
 
             if motion_result[0] is None: # can not generate motion
                 del(scene.added_cars_dict[added_car_name])

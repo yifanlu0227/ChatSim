@@ -14,6 +14,9 @@ scene:
   is_wide_angle: &is_wide_angle true
   frames: 50
   fps: 5
+  multi_process_num: 5                       # multiple process num of foreground rendering
+  if_with_depth: false                # whether the foreground rendering process considering depth and occlusion
+  if_backup: true                    # whether save the backup files for foreground rendering debugging(HDRI, images, depth)
 
   # under root directory
   cache_dir: 'results/cache'
@@ -29,7 +32,7 @@ agents:
       is_wide_angle: *is_wide_angle
       scene_name: *scene_name
       f2nerf_dir: chatsim/background/mcnerf
-      nerf_exp_name: exp_coeff_0.15
+      nerf_exp_name: new_calib
       rendering_mode: render_wide_angle_hdr_shutter # nerf_mode includes render_path, render_path_hdr_shutter, render_panorama, render_panorama_shutter, render_wide_angle, render_wide_angle_hdr, render_wide_angle_hdr_shutter
 
       f2nerf_config: wanjinyou_big
@@ -63,7 +66,7 @@ agents:
     none
 
   motion_agent: 
-    motion_tracking: False
+    motion_tracking: true
   
   view_adjust_agent:
     none

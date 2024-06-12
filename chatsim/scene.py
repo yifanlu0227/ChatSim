@@ -26,8 +26,11 @@ class Scene(nn.Module):
             self.map_data = pickle.load(f)
 
         self.is_wide_angle = config['is_wide_angle']
-        self.fps = config.get('fps',20)
+        self.fps = config.get('fps', 20)
         self.frames = config['frames']
+        self.multi_process_num = config.get('multi_process_num', 1)
+        self.if_backup = config.get('if_backup', True)
+        self.if_with_depth = config.get('if_with_depth', False)
 
         """
         [static scene data] 
@@ -57,15 +60,15 @@ class Scene(nn.Module):
 
         self.nerf_motion_extrinsics = extrinsics # [N, 3, 4]
 
-        # read intrinsics from cams_meta.npy [ziwang]
+        # read intrinsics from cams_meta.npy 
         self.intrinsics = np.load(self.ext_int_path)[:, 12:21].reshape(-1, 3, 3)[0]
-        
-        if self.is_wide_angle:
-            self.intrinsics[0, 2] *= 3
-
         self.focal = self.intrinsics[0, 0]
-        self.height = int(self.intrinsics[1, 2]*2)
-        self.width = int(self.intrinsics[0, 2]*2)
+        self.height = 1280
+        self.width = 1920
+
+        if self.is_wide_angle:
+            self.intrinsics[0, 2] += 1920 # shift the principal point to the right.
+            self.width = 1920 * 3
 
         """
         [dynamic scene data], will be updated during parsing. 

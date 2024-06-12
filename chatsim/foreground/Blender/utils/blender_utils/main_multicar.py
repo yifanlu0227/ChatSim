@@ -42,37 +42,55 @@ def render(render_opt):
     # back up hdri and rgb image
     render_output_backup_dir = os.path.join(render_output_dir, 'backup')
     check_mkdir(render_output_backup_dir)
-    imageio.imsave(os.path.join(render_output_backup_dir, 'RGB.png'), background_RGB)
-    shutil.copy(hdri_file, os.path.join(render_output_backup_dir, 'hdri.exr'))
+    imageio.imsave(os.path.join(render_output_backup_dir, 'RGB.png'), background_RGB) # backup for RGB is necessary for rendering
+    if render_opt['if_backup'] == True:
+        shutil.copy(hdri_file, os.path.join(render_output_backup_dir, 'hdri.exr'))
 
-    render_scene(render_output_dir, intrinsic, model_obj_names, render_downsample)
-    compose(render_output_dir, background_RGB, background_depth, render_downsample, motion_blur_degree)
+    render_simplification = {}
+    render_simplification['if_with_depth'] = render_opt['if_with_depth']
+    render_simplification['if_backup'] = render_opt['if_backup']
+
+    render_scene(render_output_dir, intrinsic, model_obj_names, render_downsample, render_simplification)
+    compose(render_output_dir, background_RGB, background_depth, render_downsample, motion_blur_degree, render_opt['if_with_depth'])
 
 def main():
+    def parse_argv(argv):
+        result = []
+        for i in range(1, len(argv)):
+            # When encountering "--", take the next element as the value.
+            if argv[i] == '--':
+                if i + 1 < len(argv):
+                    result.append(argv[i + 1])
+        return result
+    
     argv = sys.argv
-    argv = argv[argv.index("--") + 1:]
+    argv = parse_argv(argv)
 
     render_yaml = argv[0]
 
-    with open(render_yaml, 'r') as file:
-        render_opt = yaml.safe_load(file)
-    
-    bpy.ops.wm.read_homefile(app_template="")
-    rm_all_in_blender()
+    start_frame = int(argv[1])
+    end_frame = int(argv[2])
 
-    # read config from scene
-    scene_data = render_opt['scene_file']
-    data_dict = np.load(scene_data)
+    for frame in range(start_frame, end_frame):
+        with open(os.path.join(render_yaml,f'{frame}.yaml'), 'r') as file:
+            render_opt = yaml.safe_load(file)
+        
+        bpy.ops.wm.read_homefile(app_template="")
+        rm_all_in_blender()
 
-    H = data_dict['H'].tolist()
-    W = data_dict['W'].tolist()
-    focal = data_dict['focal'].tolist()
-    render_opt['intrinsic'] = {"H":H, "W":W, "focal":focal}
-    render_opt['cam2world'] = data_dict['extrinsic']
-    render_opt['background_RGB'] = data_dict['rgb']
-    render_opt['background_depth'] = data_dict['depth']
+        # read config from scene
+        scene_data = render_opt['scene_file']
+        data_dict = np.load(scene_data)
 
-    render(render_opt)
+        H = data_dict['H'].tolist()
+        W = data_dict['W'].tolist()
+        focal = data_dict['focal'].tolist()
+        render_opt['intrinsic'] = {"H":H, "W":W, "focal":focal}
+        render_opt['cam2world'] = data_dict['extrinsic']
+        render_opt['background_RGB'] = data_dict['rgb']
+        render_opt['background_depth'] = data_dict['depth']
+
+        render(render_opt)
 
 if __name__=="__main__":
     main()
