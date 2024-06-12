@@ -1,0 +1,48 @@
+testing_iterations: [10, 7000, 30000]
+saving_iterations: [10, 7000, 30000]
+checkpoint_iterations: []
+start_checkpoint: null
+quiet: false
+render_depth: false
+render_opacity: false
+render_sky: false
+gui: false
+
+# ModelParams
+sh_degree: 3
+source_path: null
+model_path: null
+images: "images" # image folder
+sparse_folder: ""
+resolution: 1
+white_background: false
+data_device: "cuda"
+eval: false
+
+# PipelineParams
+convert_SHs_python: false
+compute_cov3D_python: false
+debug: false
+
+# OptimizationParams
+iterations: 30000
+position_lr_init: 0.00016
+position_lr_final: 0.0000016
+position_lr_delay_mult: 0.01
+position_lr_max_steps: 30_000
+feature_lr: 0.0025
+opacity_lr: 0.05
+scaling_lr: 0.005
+scaling_t_lr: 0.002
+velocity_lr: 0.001
+rotation_lr: 0.001
+
+percent_dense: 0.01
+densification_interval: 100
+opacity_reset_interval: 3000
+densify_from_iter: 500
+densify_until_iter: 15_000
+densify_grad_threshold: 0.0002
+random_background: false
+
+lambda_dssim: 0.2

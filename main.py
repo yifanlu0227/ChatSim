@@ -5,6 +5,7 @@ import imageio.v2 as imageio
 import pprint
 from chatsim.agents.asset_select_agent import AssetSelectAgent
 from chatsim.agents.background_rendering_agent import BackgroundRenderingAgent
+from chatsim.agents.background_rendering_3dgs_agent import BackgroundRendering3DGSAgent
 from chatsim.agents.deletion_agent import DeletionAgent
 from chatsim.agents.foreground_rendering_agent import ForegroundRenderingAgent
 from chatsim.agents.motion_agent import MotionAgent
@@ -45,11 +46,15 @@ class ChatSim:
         agents_config = config['agents']
         self.project_manager = ProjectManager(agents_config["project_manager"])
         self.asset_select_agent = AssetSelectAgent(agents_config["asset_select_agent"])
-        self.background_rendering_agent = BackgroundRenderingAgent(agents_config["background_rendering_agent"])
         self.deletion_agent = DeletionAgent(agents_config["deletion_agent"])
         self.foreground_rendering_agent = ForegroundRenderingAgent(agents_config["foreground_rendering_agent"])
         self.motion_agent = MotionAgent(agents_config["motion_agent"])
         self.view_adjust_agent = ViewAdjustAgent(agents_config["view_adjust_agent"])
+        # we can choose between nerf and 3dgs for background rendering
+        if agents_config['background_rendering_agent'].get("scene_representation", 'nerf') == 'nerf':
+            self.background_rendering_agent = BackgroundRenderingAgent(agents_config["background_rendering_agent"])
+        else:
+            self.background_rendering_agent = BackgroundRendering3DGSAgent(agents_config["background_rendering_agent"])
 
         self.tech_agents = {
             "asset_select_agent": self.asset_select_agent,

@@ -29,6 +29,13 @@ pip install -r requirements.txt
 imageio_download_bin freeimage
 ```
 
+### Step 2: Faster alternative of McNeRF, 3D Gaussians splatting
+This requires the your CUDA NVCC version matches your pytorch cuda version.
+```bash
+cd chatsim/background/gaussian-splatting/
+pip install submodules/simple-knn
+```
+
 ### Step 2: Install McNeRF 
 The installation is the same as [F2-NeRF](https://github.com/totoro97/f2-nerf). Please go through the following steps.
 
@@ -260,7 +267,7 @@ data
         |-- shutters                    # normalized exposure time (mean=0 std=1)
         |-- tracking_info.pkl           # tracking data
         |-- vehi2veh0.npy               # transformation matrix from i-th frame's vehicle coordinate to the first frame's vehicle 
-        |-- sparse/0                    # calibration files from COLMAP (intermediate file, not required by simulation inference)
+        |-- colmap/sparse_undistorted   # calibration files from COLMAP (intermediate file, only required when using 3dgs rendering)
         `-- camera.xml                  # calibration file from Metashape (intermediate file, not required by simulation inference)
         coordinate.
 ```
@@ -275,7 +282,7 @@ data
 **`cams_meta.npy` instruction**
 ```
 cams_meta.shape = (N, 27)
-cams_meta[:, 0 :12]: flatten camera poses in RUB
+cams_meta[:, 0 :12]: flatten camera poses in RUB, world coordinate is the starting frame's vehicle coordinate.
 cams_meta[:, 12:21]: flatten camse intrinsics
 cams_meta[:, 21:25]: distortion params [k1, k2, p1, p2]
 cams_meta[:, 25:27]: bounds [z_near, z_far] (not used.)

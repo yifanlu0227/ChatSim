@@ -1,0 +1,16 @@
+scene_type: Chatsim
+render_depth: false
+render_opacity: false
+render_sky: false
+blend_sky: false
+eval: false
+
+llffhold: 8
+
+# data related
+load_sky_mask: false
+load_normal: false
+load_depth: false
+load_exposure: false
+
+resolution: 1

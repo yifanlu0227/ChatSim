@@ -1,0 +1,4 @@
+opencv-python-headless
+tensorboard
+submodules/simple-knn
+- git+https://github.com/NVlabs/nvdiffrast.git

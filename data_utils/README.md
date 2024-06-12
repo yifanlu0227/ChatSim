@@ -39,12 +39,12 @@ Finally, use `File->Export->Export Cameras` to export the parameters of cameras.
 
 ### Step 3: Convert to waymo coordinate (real-world scale)
 
-If you use COLMAP in Step 2, use the following command to convert to waymo's coordinate. But since we have include this in `run_colmap.sh`, you don't need to run it again. 
+If you use COLMAP in Step 2, use the following command to convert to waymo's coordinate. But since we have include this in `run_colmap.sh`, you don't need to run it again. The new camera calibration will be in `data/waymo_multi_view/${SCENE_NAME}/colmap/sparse_undistorted/cams_meta.npy`.
 ```bash
 python convert_to_waymo.py -d ../data/waymo_multi_view/${SCENE_NAME} -c colmap
 ```
 
-If you use Metashape in Step 2, change `--calibration_tool=metashape`. You need to run it mannually.
+If you use Metashape in Step 2, change `--calibration_tool=metashape`. You need to run it mannually. The new camera calibration will be in `data/waymo_multi_view/${SCENE_NAME}/cams_meta.npy`.
 
 ```bash
 python convert_to_waymo.py -d ../data/waymo_multi_view/${SCENE_NAME} -c metashape
