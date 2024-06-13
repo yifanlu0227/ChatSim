@@ -6,7 +6,7 @@ Editable Scene Simulation for Autonomous Driving via LLM-Agent Collaboration
 ![teaser](./img/chatsim_overview.png)
 
 ## News
-[06/12/2024] **background rendering speed up**: 3D Gaussian splatting is integrated as background rendering engine, rendering 50 frames within 30s.
+[06/12/2024] **background rendering speed up**: 3D Gaussian splatting is integrated as a background rendering engine, rendering 50 frames within 30s.
 
 [06/12/2024] **foreground rendering speed up**: multiple process for blender rendering in parallel! rendering 50 frames within 5 minutes (8 x NVIDIA RTX 4090).
 
@@ -33,7 +33,7 @@ conda activate chatsim
 
 ### Step 2: Install background rendering engine 
 
-We offer two background rendering method, one is `McNeRF` in our paper, another is [`3D Gaussian Splatting`](https://github.com/graphdeco-inria/gaussian-splatting). `McNeRF` encodes the exposure time and achieves brightness-consistent rendering. `3D Gaussian Splatting` is much faster (**about 50 x**) in rendering and have higher PSNR in training views. However, strong perspective shifts result in noticeable artifacts. 
+We offer two background rendering methods, one is `McNeRF` in our paper, and another is [`3D Gaussian Splatting`](https://github.com/graphdeco-inria/gaussian-splatting). `McNeRF` encodes the exposure time and achieves brightness-consistent rendering. `3D Gaussian Splatting` is much faster (**about 50 x**) in rendering and has higher PSNR in training views. However, strong perspective shifts result in noticeable artifacts. 
 
 
 **McNeRF**
@@ -45,7 +45,7 @@ https://github.com/yifanlu0227/ChatSim/assets/45688237/6e7e4411-31e5-46e3-9ca2-b
 
 https://github.com/yifanlu0227/ChatSim/assets/45688237/e7ac487c-5615-455d-bb38-026aaaabce70
 
-Installing either one is OK! If you want high rendering speed and do not cares brightness inconsistency, choose `3D Gaussian Splatting`. 
+Installing either one is OK! If you want high rendering speed and do not care about brightness inconsistency, choose `3D Gaussian Splatting`. 
 
 <details>
 <summary><span style="font-weight: bold;"> McNeRF (official implement in the paper) </span> as background rendering engine </summary>
@@ -107,7 +107,7 @@ If the mcnerf code is modified, the last two lines should always be executed.
 **Much faster**, **higher rendering quality**, but HDR sky is not enabled in this case.
 
 ### Step 2: Faster alternative of McNeRF, 3D Gaussians splatting
-This requires the your CUDA NVCC version matches your pytorch cuda version.
+This requires that your CUDA NVCC version matches your pytorch cuda version.
 ```bash
 # make CUDA (nvcc) version consistent with the pytorch CUDA version.
 
@@ -169,7 +169,7 @@ rm blender-3.5.1-linux-x64.tar.xz
 ```
 
 #### Step 4.2: Install blender utils for Blender's python
-locate the internal Python of Blender, for example `blender-3.5.1-linux-x64/3.5/python/bin/python3.10`
+locate the internal Python of Blender, for example, `blender-3.5.1-linux-x64/3.5/python/bin/python3.10`
 
 ```bash
 export blender_py=$PWD/blender-3.5.1-linux-x64/3.5/python/bin/python3.10
@@ -184,7 +184,7 @@ $blender_py setup.py develop
 ```
 
 ## Step 5: Setup Trajectory Tracking Module (optional)
-If you want to get smoother and more realistic trajectories, you can install the trajectory module and change the parameter `motion_agent-motion_tracking` to True in .yaml file. For installation (both code and pretrained model), you can run the following commands in terminal. This requires Pytorch >= 1.13.
+If you want to get smoother and more realistic trajectories, you can install the trajectory module and change the parameter `motion_agent-motion_tracking` to True in .yaml file. For installation (both code and pre-trained model), you can run the following commands in the terminal. This requires Pytorch >= 1.13.
 ```bash
 pip install frozendict gym==0.26.2 stable-baselines3[extra] protobuf==3.20.1
 
@@ -206,13 +206,13 @@ If you want to train the skydome model, follow the README in `chatsim/foreground
 
 ### Data Preparation
 
-#### Download and extract waymo data
+#### Download and extract Waymo data
 ```bash
 mkdir data
 mkdir data/waymo_tfrecords
 mkdir data/waymo_tfrecords/1.4.2
 ```
-Download the [waymo perception dataset v1.4.2](https://waymo.com/open/download/) to the `data/waymo_tfrecords/1.4.2`. In the google cloud console, a correct folder path is `waymo_open_dataset_v_1_4_2/individual_files/training` or `waymo_open_dataset_v_1_4_2/individual_files/validation`. Some static scenes we have used are listed here.  Use `Filter` to find them quickly, or use [gcloud](https://cloud.google.com/storage/docs/discover-object-storage-gcloud) to download them in batch.
+Download the [waymo perception dataset v1.4.2](https://waymo.com/open/download/) to the `data/waymo_tfrecords/1.4.2`. In the google cloud console, the correct folder path is `waymo_open_dataset_v_1_4_2/individual_files/training` or `waymo_open_dataset_v_1_4_2/individual_files/validation`. Some static scenes we have used are listed here.  Use `Filter` to find them quickly, or use [gcloud](https://cloud.google.com/storage/docs/discover-object-storage-gcloud) to download them in batch.
 
 <details>
 <summary><span style="font-weight: bold;">gcloud CLI installation for ubuntu 18.04+ (need sudo) </span></summary>
@@ -275,7 +275,7 @@ If you have installed `gcloud`, you can download the above tfrecords via
 bash data_utils/download_waymo.sh data_utils/waymo_static_32.lst data/waymo_tfrecords/1.4.2
 ```
 
-After downloading tfrecords, you should see folder structure like the following. If you download the tfrecord files from the console, you will also have prefix like `individual_files_training_` or `individual_files_validation_`.
+After downloading tfrecords, you should see a folder structure like the following. If you download the tfrecord files from the console, you will also have prefixes like `individual_files_training_` or `individual_files_validation_`.
 
 ```
 data
@@ -296,7 +296,7 @@ python process_waymo_script.py --waymo_data_dir=../data/waymo_tfrecords/1.4.2 --
 ```
 This will generate the data folder `data/waymo_multi_view`. 
 
-#### Recalibrate waymo data (or just download our recalibrated files)
+#### Recalibrate Waymo data (or just download our recalibrated files)
 ```bash
 cd ../data
 
@@ -324,7 +324,7 @@ If you want to do the recalibration yourself, you need to use COLMAP or Metashap
 
 ![compare](./img/pose_compare.png)
 
-Final data folder will be like:
+The final data folder will be like:
 ```bash
 data
 `-- waymo_multi_view
@@ -349,10 +349,10 @@ data
 
 **Coordinate Convention**
 
-- Points in `point_cloud/000_xxx.pcd` are in ego vehicle's coordinate
+- Points in `point_cloud/000_xxx.pcd` are in the ego vehicle's coordinate
 - Camera poses in `camera.xml` are RDF convention (x-right, y-down, z-front).
 - Camera poses in `cams_meta.npy` are in RUB convention (x-right, y-up, z-back).
-- `vehi2veh0.npy` transformation between vehicle coordinate, vehicle coordinates are FLU convention (x-front, y-left, z-up), as waymo paper illustrated.
+- `vehi2veh0.npy` transformation between vehicle coordinates, vehicle coordinates are FLU convention (x-front, y-left, z-up), as Waymo paper illustrated.
 
 **`cams_meta.npy` instruction**
 ```
@@ -365,7 +365,7 @@ cams_meta[:, 25:27]: bounds [z_near, z_far] (not used.)
 
 
 #### Download Blender 3D Assets
-- [Blender Assets](https://huggingface.co/datasets/yifanlu/Blender_3D_assets/tree/main). Download with following command and make sure they are in `data/blender_assets`. 
+- [Blender Assets](https://huggingface.co/datasets/yifanlu/Blender_3D_assets/tree/main). Download with the following command and make sure they are in `data/blender_assets`. 
 ```bash
 # suppose you are in ChatSim/data
 git lfs install
@@ -381,9 +381,9 @@ rm -rf Blender_3D_assets
 mv assets blender_assets
 ```
 
-Our 3D models are collected from the Internet. We tried our best to contact the author of the model and ensure that copyright issues are properly dealt with (our open source projects are not for profit). If you are the author of a model and our behavior infringes your copyright, please contact us immediately and we will delete the model.
+Our 3D models are collected from the Internet. We tried our best to contact the author of the model and ensure that copyright issues are properly dealt with (our open-source projects are not for profit). If you are the author of a model and our behaviour infringes your copyright, please contact us immediately and we will delete the model.
 
-#### Download skydome HDRI
+#### Download Skydome HDRI
 - [Skydome HDRI](https://huggingface.co/datasets/yifanlu/Skydome_HDRI/tree/main). Download with the following command and make sure they are in `data/waymo_skydome`. 
 ```bash
 # suppose you are in ChatSim/data
@@ -398,7 +398,7 @@ You can also train the skydome estimation network yourself. Go to `chatsim/foreg
 
 ## Train and simulation
 
-Either train `McNeRF` or `3D Gaussian Splatting`, depends on your installation.
+Either train `McNeRF` or `3D Gaussian Splatting`, depending on your installation.
 
 <details> <summary><span style="font-weight: bold;">Train McNeRF</span></summary>
 
@@ -442,7 +442,7 @@ You can simply run scripts like `bash train-1137.sh` for training.
 </details>
 
 #### Start simulation
-Set the API to environment variable. Also set `OPENAI_API_BASE` if you have network issue (especially in China mainland).
+Set the API to an environment variable. Also, set `OPENAI_API_BASE` if you have network issues (especially in China mainland).
 ```bash
 export OPENAI_API_KEY=<your api key>
 ```
@@ -468,9 +468,9 @@ python main.py -y config/waymo-1137.yaml -p 'add a straight driving car in the s
 The rendered results are saved in `results/1137_demo_%Y_%m_%d_%H_%M_%S`. Intermediate files are saved in `results/cache/1137_demo_%Y_%m_%d_%H_%M_%S` for debug and visualization if `save_cache` are enabled in `config/waymo-1137.yaml`.
 
 #### Config file explanation
-`config/waymo-1137.yaml` contains the detailed explanation for each entry. We will give some extra explanation. Suppose the yaml is read into `config_dict`:
+`config/waymo-1137.yaml` contains a detailed explanation for each entry. We will give some extra explanation. Suppose the yaml is read into `config_dict`:
 
-- `config_dict['scene']['is_wide_angle']` determines the rendering view. If set to `True`, we will expand waymo's intrinsics (width -> 3 x width) to render wide-angle images. Also note that `is_wide_angle = True` comes with `rendering_mode = 'render_wide_angle_hdr_shutter'`; `is_wide_angle = False` comes with `rendering_mode = 'render_hdr_shutter'`
+- `config_dict['scene']['is_wide_angle']` determines the rendering view. If set to `True`, we will expand Waymo's intrinsics (width -> 3 x width) to render wide-angle images. Also note that `is_wide_angle = True` comes with `rendering_mode = 'render_wide_angle_hdr_shutter'`; `is_wide_angle = False` comes with `rendering_mode = 'render_hdr_shutter'`
 
 - `config_dict['scene']['frames']` the frame number for rendering.
 
