@@ -3,7 +3,7 @@ Editable Scene Simulation for Autonomous Driving via LLM-Agent Collaboration
 
 [Arxiv](https://arxiv.org/abs/2402.05746) | [Project Page](https://yifanlu0227.github.io/ChatSim/) | [Video](https://youtu.be/5xWz5YBsE5M)
 
-![teaser](./img/teaser.jpg)
+![teaser](./img/chatsim_overview.png)
 
 ## News
 [06/12/2024] **background rendering speed up**: 3D Gaussian splatting is integrated as background rendering engine, rendering 50 frames within 30s.
