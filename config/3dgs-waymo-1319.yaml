@@ -5,7 +5,7 @@ scene:
   scene_name: *scene_name
   
   # suppose these files are under $data_root/$scene_name/ 
-  ext_int_file: 'cams_meta.npy'
+  ext_int_file: 'colmap/sparse_undistorted/cams_meta.npy'       # extrinsic and intrinsic parameters
   bbox_file: '3d_boxes.npy'
   map_file: 'map.pkl'
   init_img_file: 'wide_init_img.png'
