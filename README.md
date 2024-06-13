@@ -296,12 +296,14 @@ python process_waymo_script.py --waymo_data_dir=../data/waymo_tfrecords/1.4.2 --
 ```
 This will generate the data folder `data/waymo_multi_view`. 
 
-#### Recalibrate Waymo data (or just download our recalibrated files)
+#### Recalibrate Waymo data
+<details> <summary><span style="font-weight: bold;">Download our recalibrated files</span></summary>
+
 ```bash
 cd ../data
 
 # calibration files using metashape
-# you can also got to https://drive.google.com/file/d/1ms4yhjH5pEDMhyf_CfzNEYq5kj4HILki/view?usp=sharing to download mannually
+# you can also go to https://drive.google.com/file/d/1ms4yhjH5pEDMhyf_CfzNEYq5kj4HILki/view?usp=sharing to download mannually
 gdown 1ms4yhjH5pEDMhyf_CfzNEYq5kj4HILki
 unzip recalibrated_poses.zip
 rsync -av recalibrated_poses/ waymo_multi_view/
@@ -320,9 +322,15 @@ rsync -av waymo_recalibrated_poses_colmap/waymo_multi_view/ waymo_multi_view/
 rm -rf waymo_recalibrated_poses_colmap
 ```
 
+</details>
+
+<details> <summary><span style="font-weight: bold;">Or recalibrated by yourself</span></summary>
+
 If you want to do the recalibration yourself, you need to use COLMAP or Metashape to calibrate images in the `data/waymo_multi_view/{SCENE_NAME}/images` folder and convert them back to the waymo world coordinate. Please follow the tutorial in `data_utils/README.md`. And the final camera extrinsics and intrinsics are stored as `cam_meta.npy` (metashape case) or `colmap/sparse_undistorted/cam_meta.npy` (colmap case, necessary for 3dgs training).
 
 ![compare](./img/pose_compare.png)
+
+</details>
 
 The final data folder will be like:
 ```bash
