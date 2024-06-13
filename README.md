@@ -35,6 +35,16 @@ conda activate chatsim
 
 We offer two background rendering method, one is `McNeRF` in our paper, another is [`3D Gaussian Splatting`](https://github.com/graphdeco-inria/gaussian-splatting). `McNeRF` encodes the exposure time and achieves brightness-consistent rendering. `3D Gaussian Splatting` is much faster (**about 50 x**) in rendering and have higher PSNR in training views. However, strong perspective shifts result in noticeable artifacts. 
 
+
+**McNeRF**
+
+
+https://github.com/yifanlu0227/ChatSim/assets/45688237/6e7e4411-31e5-46e3-9ca2-be0d6e813a60
+
+**3D Gaussian Splatting**
+
+https://github.com/yifanlu0227/ChatSim/assets/45688237/e7ac487c-5615-455d-bb38-026aaaabce70
+
 Installing either one is OK! If you want high rendering speed and do not cares brightness inconsistency, choose `3D Gaussian Splatting`. 
 
 <details>
