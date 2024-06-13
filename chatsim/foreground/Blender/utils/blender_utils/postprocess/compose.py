@@ -82,7 +82,8 @@ def compose(rendered_output_dir,
             background_RGB,
             background_depth,
             render_downsample,
-            motion_blur_degree):
+            motion_blur_degree,
+            if_with_depth):
     """
     Args:
         rendered_output_dir: str
@@ -92,6 +93,16 @@ def compose(rendered_output_dir,
         background_depth: np.ndarray
             background depth image
     """
+    if if_with_depth == False:
+        RGB_over_background = read_from_render(rendered_output_dir, 'RGB', 'vehicle_and_shadow_over_background') # [H, W, 4]
+        H, W = RGB_over_background.shape[:2]
+
+        RGB_over_background = cv2.resize(RGB_over_background, (render_downsample * W, render_downsample * H))
+        RGB_over_background = RGB_over_background[:,:,:3]
+        RGB_over_background = motion_blur(RGB_over_background, degree=motion_blur_degree, angle = 45)
+        imageio.imsave(os.path.join(rendered_output_dir, "RGB_composite.png"), RGB_over_background)
+
+        return
 
     depth_vp = read_from_render(rendered_output_dir, 'depth', 'vehicle_and_plane') # [H, W, 4]
     depth_vp = expand_depth(depth_vp).astype(np.float32)

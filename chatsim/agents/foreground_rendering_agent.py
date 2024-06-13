@@ -10,6 +10,8 @@ import yaml
 import shutil
 import multiprocessing
 import sys
+import time
+import subprocess
 
 class ForegroundRenderingAgent:
     def __init__(self, config):
@@ -68,10 +70,34 @@ class ForegroundRenderingAgent:
             # multiprocess rendering
             real_render_frames = 1 if scene.add_car_all_static else scene.frames
             print(f"{colored('[Blender]', 'magenta', attrs=['bold'])} Start rendering {real_render_frames} images.")
-            print(f"see the log in {os.path.join(scene.cache_dir, 'blender.log')} if save_cache is enabled")
+            print(f"see the log in {os.path.join(scene.cache_dir, 'rendering_log')} if save_cache is enabled")
 
+            # [SAM + LiDAR projection]
+            # real_update_frames = scene.frames if scene.is_ego_motion else 1
+            # for frame_id in range(real_update_frames):
+            #     self.update_depth_single_frame(scene, frame_id=frame_id)
+
+            # [Depth Estimation]
+            # It works unstably. We can assume the depth of background is infinitely large
+            background_depth_list = []
+            if self.estimate_depth:
+                real_update_frames = scene.frames if scene.is_ego_motion else 1
+
+                if self.depth_est_method == 'SAM':
+                    background_depth_list = self.update_depth_batch_SAM(scene, scene.current_images[:real_update_frames])
+                else:
+                    raise NotImplementedError
+
+                print(f"{colored('[Depth Estimation]', 'cyan', attrs=['bold'])} Finish depth estimation {real_update_frames} images.")
+            
+            # prepare the config and npz files for rendering 
+            print('preparing input files for blender rendering')
             for frame_id in tqdm(range(real_render_frames)):
-                self.func_blender_add_cars_single_frame(scene, frame_id)
+                self.func_blender_add_cars_prepare_files_single_frame(scene, frame_id, background_depth_list)
+
+            # parallel rendering process for all frames
+            print(f'start rendering in parallel... MP={scene.multi_process_num}')
+            self.func_parallel_blender_rendering(scene)
 
             print(f"{colored('[Blender]', 'magenta', attrs=['bold'])} Finish rendering {real_render_frames} images.")
 
@@ -83,53 +109,6 @@ class ForegroundRenderingAgent:
 
             print(f"{colored('[Blender]', 'magenta', attrs=['bold'])} Copying Remaining {scene.frames - real_render_frames} images.")
 
-
-            # [SAM + LiDAR projection]
-            # real_update_frames = scene.frames if scene.is_ego_motion else 1
-            # for frame_id in range(real_update_frames):
-            #     self.update_depth_single_frame(scene, frame_id=frame_id)
-
-            # [Depth Estimation]
-            # It works unstably. We can assume the depth of background is infinitely large
-            if self.estimate_depth:
-                real_update_frames = scene.frames if scene.is_ego_motion else 1
-
-                if self.depth_est_method == 'SAM':
-                    background_depth_list = self.update_depth_batch_SAM(scene, scene.current_images[:real_update_frames])
-                else:
-                    raise NotImplementedError
-            
-                # save depth to npy file
-                for frame_id in range(real_update_frames):
-                    np.save(os.path.join(output_path, str(frame_id), 'depth', 'background_depth.npy'), 
-                            background_depth_list[frame_id])
-                    # save exr for visualization
-                    imageio.imsave(os.path.join(output_path, str(frame_id), 'depth', 'background_depth.exr'), 
-                            background_depth_list[frame_id])
-
-                print(f"{colored('[Depth Estimation]', 'cyan', attrs=['bold'])} Finish depth estimation {real_update_frames} images.")
-
-                # copy npy file to other frames (no ego motion, only perform on the first frame)
-                for frame_id in range(real_update_frames, scene.frames):
-                    assert real_update_frames == 1
-                    source_depth_file = f"{output_path}/0/depth/background_depth.npy"
-                    target_dir = f"{output_path}/{frame_id}/depth"
-                    shutil.copy(source_depth_file, target_dir)
-                print(f"{colored('[Depth Estimation]', 'cyan', attrs=['bold'])} Copying remaining {scene.frames - real_update_frames} images.")
-
-                # compose foreground and background in parallel
-                processes = []
-                for frame_id in range(scene.frames):
-                    process = multiprocessing.Process(
-                        target=self.func_compose_with_new_depth_single_frame, args=(scene, frame_id)
-                    )
-                    process.start()
-                    processes.append(process)
-
-                for process in processes:
-                    process.join()
-
-                print(f"{colored('[Blender]', 'magenta', attrs=['bold'])} Finish composing {scene.frames} foreground & background images.")
 
             # image list to video
             video_frames = []
@@ -143,7 +122,7 @@ class ForegroundRenderingAgent:
 
         scene.final_video_frames = video_frames
 
-    def func_blender_add_cars_single_frame(self, scene, frame_id):
+    def func_blender_add_cars_prepare_files_single_frame(self, scene, frame_id, background_depth_list):
         # save single frame's npz file for blender utils rendering
         np.savez(
             os.path.join(scene.cache_dir, "blender_npz", f"{frame_id}.npz"),
@@ -151,7 +130,7 @@ class ForegroundRenderingAgent:
             W=scene.width,
             focal=scene.focal,
             rgb=scene.current_inpainted_images[frame_id],
-            depth=1000,
+            depth=background_depth_list[frame_id] if len(background_depth_list) > 0 else 1000,
             extrinsic=transform_nerf2opencv_convention(
                 scene.current_extrinsics[frame_id]
             )
@@ -277,13 +256,13 @@ class ForegroundRenderingAgent:
             "hdri_file": final_hdri_path,
             "render_downsample": 2,
             "cars": car_list_for_blender,
+            "if_with_depth": scene.if_with_depth,
+            "if_backup": scene.if_backup
         }
 
         with open(yaml_path, "w", encoding="utf-8") as f:
             yaml.dump(data=blender_dict, stream=f, allow_unicode=True)
-        os.system(
-            f"{self.blender_dir} -b --python {self.blender_utils_dir}/main_multicar.py -- {yaml_path} 1> {os.path.join(scene.cache_dir, 'blender.log')}"
-        )
+        
 
     def func_compose_with_new_depth_single_frame(self, scene, frame_id):
         output_path = os.path.join(scene.cache_dir, "blender_output")
@@ -305,6 +284,36 @@ class ForegroundRenderingAgent:
             depth_map,  # background depth. numpy.ndarray
             2, # downsample_rate
         )
+
+    def func_parallel_blender_rendering(self, scene):
+        multi_process_num = scene.multi_process_num
+        log_dir = os.path.join(scene.cache_dir, "rendering_log")
+        check_and_mkdirs(os.path.join(scene.cache_dir, 'rendering_log'))
+
+        frames = scene.frames
+
+        segment_length = frames // multi_process_num
+
+        processes = []
+
+        for i in range(multi_process_num):
+            start_frame = i * segment_length
+            end_frame = (i + 1) * segment_length if i < multi_process_num - 1 else frames
+            log_file = os.path.join(log_dir, f"{i}.txt")
+
+            command = (
+                f"{self.blender_dir} -b --python {self.blender_utils_dir}/main_multicar.py "
+                f"-- {os.path.join(scene.cache_dir, 'blender_yaml')} -- {start_frame} -- {end_frame} > {log_file}"
+            )
+
+            with open(log_file, 'w') as f:
+                process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                
+                processes.append(process)
+
+        for process in processes:
+            stdout, stderr = process.communicate()
+            
 
 
     def get_sparse_depth_from_LiDAR(self, scene, frame_id):

@@ -1,0 +1,29 @@
+scene_type: Chatsim
+render_depth: true
+render_opacity: true
+render_sky: true
+blend_sky: true
+eval: false
+
+llffhold: 8
+
+# data related
+load_sky_mask: true
+load_normal: false
+load_depth: false
+load_exposure: false
+
+sky_mask_folder: 'images_sky_masks'
+sky_value: 0
+
+resolution: 1
+
+# model related
+sky_model: skycube
+sky_model_args:
+  resolution: 1024
+
+sky_model_lr: 0.0001
+
+# loss related
+lambda_opacity: 0.05

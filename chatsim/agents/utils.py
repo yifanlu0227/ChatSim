@@ -28,7 +28,7 @@ def check_and_mkdirs(path):
     if not os.path.exists(path):
         os.makedirs(path)
 
-def generate_video(scene, prompt):
+def generate_video(scene, prompt, save_images=False):
     video_output_path = os.path.join(scene.output_dir, scene.logging_name)
     check_and_mkdirs(video_output_path)
     filename = prompt.replace(' ', '_')[:40]
@@ -40,10 +40,12 @@ def generate_video(scene, prompt):
     for frame in tqdm(scene.final_video_frames):
         writer.append_data(frame)
     writer.close()
+
     # save frames to folder
-    check_and_mkdirs(os.path.join(video_output_path, f"{filename}"))
-    for i,img in enumerate(scene.final_video_frames):
-        imageio.imsave(os.path.join(video_output_path, f"{filename}/{i}.png"),img)
+    if save_images:
+        check_and_mkdirs(os.path.join(video_output_path, f"{filename}"))
+        for i,img in enumerate(scene.final_video_frames):
+            imageio.imsave(os.path.join(video_output_path, f"{filename}/{i}.png"),img)
     
     if not scene.save_cache:
         scene.clean_cache()

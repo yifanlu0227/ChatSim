@@ -42,3 +42,6 @@ einops
 packaging
 easydict
 gdown
+plyfile
+tensorboard
+gsplat

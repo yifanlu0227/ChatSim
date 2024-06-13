@@ -14,6 +14,9 @@ scene:
   is_wide_angle: &is_wide_angle true
   frames: 50
   fps: 5
+  multi_process_num: 5                       # multiple process num of foreground rendering
+  if_with_depth: false                # whether the foreground rendering process considering depth and occlusion
+  if_backup: true                    # whether save the backup files for foreground rendering debugging(HDRI, images, depth)
 
   # under root directory
   cache_dir: 'results/cache'
@@ -63,7 +66,7 @@ agents:
     none
 
   motion_agent: 
-    motion_tracking: False
+    motion_tracking: true
   
   view_adjust_agent:
     none

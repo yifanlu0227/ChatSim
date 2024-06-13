@@ -11,9 +11,12 @@ python process_waymo_script.py --waymo_data_dir=../data/waymo_tfrecords/1.4.2 --
 
 ### Step 2: Using COLMAP or Metashape to calibrate images
 
+If you use 3D Gaussian splatting for background rendering, you need go through the COLMAP part.
 
 <details>
 <summary>COLMAP usage</summary>
+
+Install [COLMAP](https://colmap.github.io/install.html).
 
 #### Step 2.2: Run COLMAP sparse reconstruction:
 ```shell
@@ -39,14 +42,18 @@ Finally, use `File->Export->Export Cameras` to export the parameters of cameras.
 
 ### Step 3: Convert to waymo coordinate (real-world scale)
 
-If you use COLMAP in Step 2, use the following command to convert to waymo's coordinate. But since we have include this in `run_colmap.sh`, you don't need to run it again. 
+If you use COLMAP in Step 2, use the following command to convert to waymo's coordinate. But since we have include this in `run_colmap.sh`, you don't need to run it again. The new camera calibration will be in `data/waymo_multi_view/${SCENE_NAME}/colmap/sparse_undistorted/cams_meta.npy`.
 ```bash
 python convert_to_waymo.py -d ../data/waymo_multi_view/${SCENE_NAME} -c colmap
 ```
 
-If you use Metashape in Step 2, change `--calibration_tool=metashape`. You need to run it mannually.
+If you use Metashape in Step 2, change `--calibration_tool=metashape`. You need to run it mannually. The new camera calibration will be in `data/waymo_multi_view/${SCENE_NAME}/cams_meta.npy`.
 
 ```bash
 python convert_to_waymo.py -d ../data/waymo_multi_view/${SCENE_NAME} -c metashape
 ```
 
+To run them all, 
+```bash
+python convert_to_waymo_script.py -d ../data/waymo_multi_view -c <metashape/colmap>
+```
