@@ -16,12 +16,9 @@ SCENE_NAME=segment-11379226583756500423_6230_810_6250_810_with_camera_labels
 
 # case 1) no extra processing for the sky
 python train.py --config configs/chatsim/original.yaml source_path=data/waymo_multi_view/${SCENE_NAME}/colmap/sparse_undistorted model_path=output/${SCENE_NAME}
-# case 1.5) encoding exposure time into 3dgs like McNeRF, but not work. Need to inspect into the SH for HDR.
-python train.py --config configs/chatsim/original_w_exposure.yaml source_path=data/waymo_multi_view/${SCENE_NAME}/colmap/sparse_undistorted model_path=output/${SCENE_NAME}_w_exposure
-# case 2) encode the sky with sky cubebox (requires sky mask)
+
+# case 2) encode the sky with sky cubebox (requires sky mask, see ChatSim/data_utils/skyseg.py)
 python train.py --config configs/chatsim/skycube.yaml source_path=data/waymo_multi_view/${SCENE_NAME}/colmap/sparse_undistorted model_path=output/${SCENE_NAME}-skycube
-# case 3) encode the sky with sky mlp (requires sky mask)
-python train.py --config configs/chatsim/skymlp.yaml source_path=data/waymo_multi_view/${SCENE_NAME}/colmap/sparse_undistorted model_path=output/${SCENE_NAME}-skymlp
 
 # rendering, for example case 1
 python render.py -m output/${SCENE_NAME}

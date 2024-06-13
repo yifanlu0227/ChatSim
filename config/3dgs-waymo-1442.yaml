@@ -28,6 +28,8 @@ agents:
     assets_dir: data/blender_assets
 
   background_rendering_agent:
+    scene_representation: 3dgs
+    
     nerf_config: &nerf_config
       is_wide_angle: *is_wide_angle
       scene_name: *scene_name
@@ -39,6 +41,13 @@ agents:
       dataset_name: waymo_multi_view
 
       nerf_quiet_render: false
+
+    gs_config:
+      is_wide_angle: *is_wide_angle
+
+      gs_dir: chatsim/background/gaussian-splatting
+      output_folder: output                         # chatsim/background/gaussian-splatting/output
+      gs_model_name: *scene_name 
 
   deletion_agent:
     inpaint_dir: chatsim/background/inpainting/latent-diffusion

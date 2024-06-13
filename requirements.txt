@@ -44,3 +44,4 @@ easydict
 gdown
 plyfile
 tensorboard
+gsplat

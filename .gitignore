@@ -161,6 +161,7 @@ cython_debug/
 #.idea/
 
 /data
+/data2
 data/*
 chatsim/background/mcnerf/panorama
 chatsim/background/mcnerf/data

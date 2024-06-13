@@ -13,7 +13,7 @@ load_normal: false
 load_depth: false
 load_exposure: false
 
-sky_mask_folder: 'sky_masks'
+sky_mask_folder: 'images_sky_masks'
 sky_value: 0
 
 resolution: 1

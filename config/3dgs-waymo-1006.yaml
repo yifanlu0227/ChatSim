@@ -1,4 +1,4 @@
-scene_name: &scene_name segment-14424804287031718399_1281_030_1301_030_with_camera_labels
+scene_name: &scene_name segment-10061305430875486848_1080_000_1100_000_with_camera_labels
 
 scene:
   data_root: data/waymo_multi_view
@@ -28,6 +28,8 @@ agents:
     assets_dir: data/blender_assets
 
   background_rendering_agent:
+    scene_representation: 3dgs
+    
     nerf_config: &nerf_config
       is_wide_angle: *is_wide_angle
       scene_name: *scene_name
@@ -40,6 +42,14 @@ agents:
 
       nerf_quiet_render: false
 
+    gs_config:
+      is_wide_angle: *is_wide_angle
+
+      gs_dir: chatsim/background/gaussian-splatting
+      output_folder: output                         # chatsim/background/gaussian-splatting/output
+      gs_model_name: *scene_name 
+
+
   deletion_agent:
     inpaint_dir: chatsim/background/inpainting/latent-diffusion
     video_inpaint_dir: chatsim/background/inpainting/Inpaint-Anything
@@ -48,7 +58,7 @@ agents:
     nerf_config: *nerf_config
 
     skydome_hdri_dir: data/waymo_skydome
-    skydome_hdri_idx: '015' # manually select
+    skydome_hdri_idx: '000' # manually select
 
     use_surrounding_lighting: false # only use skydome lighting
 

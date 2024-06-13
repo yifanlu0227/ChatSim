@@ -11,7 +11,7 @@ from os import makedirs
 from scene import Scene
 import numpy as np
 import torch
-from termcolor import colored
+import pickle
 from utils.general_utils import safe_state
 from argparse import ArgumentParser
 from omegaconf import OmegaConf
@@ -68,10 +68,18 @@ def render_set(args, view_cameras, iteration):
         gaussians = GaussianModel(args)
         # load checkpoint
         loaded_iter = searchForMaxIteration(os.path.join(args.model_path, "point_cloud"))
+
+        # loading gaussian weight and sky box
         gaussians.load_ply(os.path.join(args.model_path,
                                         "point_cloud",
                                         "iteration_" + str(loaded_iter),
                                         "point_cloud.ply"))
+        sky_weigth_path = os.path.join(args.model_path,
+                                        "point_cloud",
+                                        "iteration_" + str(loaded_iter),
+                                        "sky_weight.pth")
+        if gaussians.sky_model is not None and os.path.exists(sky_weigth_path):
+            gaussians.sky_model.restore(torch.load(sky_weigth_path))
 
         bg_color = [0, 0, 0]
         background = torch.tensor(bg_color, dtype=torch.float32, device="cuda")
@@ -81,9 +89,17 @@ def render_set(args, view_cameras, iteration):
         render_path = os.path.join(model_path, 'chatsim_novel_views')
         makedirs(render_path, exist_ok=True)
 
-        for idx, view in enumerate(view_cameras):
-            render_pkg = render(view, gaussians, args, background, exposure_scale=1.0 if args.get('load_exposure', False) else None)
-            torchvision.utils.save_image(render_pkg['render'], os.path.join(render_path, '{0:03d}'.format(idx) + ".png"))
+        print('Rendering and saving to images') # file io is very slow.
+        rendered_images_tensor_list = []
+        for idx, view in tqdm(enumerate(view_cameras)):
+            render_pkg = render(view, gaussians, args, background, exposure_scale=1.0 if args.load_exposure else None)
+            rendered_images_tensor_list.append(
+                (render_pkg['render'].permute(1, 2, 0).clamp(0, 1).cpu().numpy() * 255).astype(np.uint8)
+            )
+
+        # save rendered_images_tensor_list to a .pkl file
+        with open(os.path.join(render_path, 'rendered.pkl'), 'wb') as f:
+            pickle.dump(rendered_images_tensor_list, f)
 
 
 if __name__ == "__main__":

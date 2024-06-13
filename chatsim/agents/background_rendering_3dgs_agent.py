@@ -5,6 +5,7 @@ import numpy as np
 from termcolor import colored
 import imageio.v2 as imageio
 import os
+import pickle
 
 class BackgroundRendering3DGSAgent:
     def __init__(self, config):
@@ -55,11 +56,12 @@ class BackgroundRendering3DGSAgent:
         os.chdir(current_dir)
         
         scene.current_images = [] # to be updated
-        img_path_list = os.listdir(self.gs_novel_view_dir)
-        img_path_list.sort(key=lambda x:int(x[:-4]))
+        img_rendered_pkls = os.listdir(self.gs_novel_view_dir)
+        assert len(img_rendered_pkls) == 1, f"the folder has {len(img_rendered_pkls)} files"
+        img_rendered_pkl = os.path.join(self.gs_novel_view_dir, img_rendered_pkls[0])
 
-        for img_path in img_path_list:
-            scene.current_images.append(imageio.imread(os.path.join(self.gs_novel_view_dir, img_path))[:, :scene.width])
+        with open(img_rendered_pkl, 'rb') as f:
+            scene.current_images = pickle.load(f)
 
         if not scene.is_ego_motion:
             scene.current_images = scene.current_images * scene.frames

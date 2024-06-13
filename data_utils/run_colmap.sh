@@ -19,20 +19,21 @@ colmap exhaustive_matcher \
 mkdir $DATASET_PATH/colmap/sparse
 mkdir $DATASET_PATH/colmap/sparse/not_align # not aligned to waymo's scale
 
+# if the reconstruction result is broken, 
+# try 1) remove --Mapper.init_min_tri_angle 1
 colmap mapper \
     --database_path $DATASET_PATH/colmap/database.db \
     --image_path $DATASET_PATH/images \
     --output_path $DATASET_PATH/colmap/sparse/not_align \
-    --Mapper.init_max_forward_motion 1.0 \
-    --Mapper.init_min_tri_angle 0.5 \
     --Mapper.ba_refine_focal_length 0 \
     --Mapper.ba_refine_extra_params 0 \
     --Mapper.multiple_models 1 \
+    --Mapper.init_min_tri_angle 1 \
     --Mapper.ba_global_max_num_iterations 30 \
     --Mapper.ba_global_images_ratio 1.3 \
     --Mapper.ba_global_points_ratio 1.3 \
-    --Mapper.ba_global_images_freq 2000 \
-    --Mapper.ba_global_points_freq 35000 \
+    --Mapper.ba_global_images_freq 200 \
+    --Mapper.ba_global_points_freq 3500 \
     --Mapper.filter_min_tri_angle 0.1 \
 
 # undistortion is necessary for gaussian splatting, but not McNeRF

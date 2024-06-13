@@ -5,12 +5,18 @@ Editable Scene Simulation for Autonomous Driving via LLM-Agent Collaboration
 
 ![teaser](./img/teaser.jpg)
 
+## News
+[06/12/2024] **background rendering speed up**: 3D Gaussian splatting is integrated as background rendering engine, rendering 50 frames within 30s.
+
+[06/12/2024] **foreground rendering speed up**: multiple process for blender rendering in parallel! rendering 50 frames within 5 minutes (8 x NVIDIA RTX 4090).
+
 ## Requirement
 - Ubuntu version >= 20.04 (for using Blender 3.+)
 - Python >= 3.8
 - Pytorch >= 1.13
+- CUDA >= 11.6
 - COLMAP or Metashape software (not necessary, we provide recalibrated poses)
-- OpenAI API Key
+- OpenAI API Key (you can also use other models' API from [NVIDIA AI](https://build.nvidia.com/explore/reasoning) for free lunch)
 
 ## Installation
 First clone this repo recursively.
@@ -23,20 +29,23 @@ git clone https://github.com/yifanlu0227/ChatSim.git --recursive
 ```bash
 conda create -n chatsim python=3.9 git-lfs
 conda activate chatsim
+```
 
+### Step 2: Install background rendering engine 
+
+We offer two background rendering method, one is `McNeRF` in our paper, another is [`3D Gaussian Splatting`](https://github.com/graphdeco-inria/gaussian-splatting). `McNeRF` encodes the exposure time and achieves brightness-consistent rendering. `3D Gaussian Splatting` is much faster (**about 50 x**) in rendering and have higher PSNR in training views. However, strong perspective shifts result in noticeable artifacts. 
+
+Installing either one is OK! If you want high rendering speed and do not cares brightness inconsistency, choose `3D Gaussian Splatting`. 
+
+<details>
+<summary><span style="font-weight: bold;"> McNeRF (official implement in the paper) </span> as background rendering engine </summary>
+```bash
 pip install torch==1.13.1+cu117 torchvision==0.14.1+cu117 torchaudio==0.13.1 --extra-index-url https://download.pytorch.org/whl/cu117
+
 pip install -r requirements.txt
 imageio_download_bin freeimage
 ```
 
-### Step 2: Faster alternative of McNeRF, 3D Gaussians splatting
-This requires the your CUDA NVCC version matches your pytorch cuda version.
-```bash
-cd chatsim/background/gaussian-splatting/
-pip install submodules/simple-knn
-```
-
-### Step 2: Install McNeRF 
 The installation is the same as [F2-NeRF](https://github.com/totoro97/f2-nerf). Please go through the following steps.
 
 ```bash
@@ -78,6 +87,43 @@ cmake . -B build
 cmake --build build --target main --config RelWithDebInfo -j
 ```
 If the mcnerf code is modified, the last two lines should always be executed.
+
+</details>
+
+<details>
+<summary><span style="font-weight: bold;"> 3D Gaussians Splatting </span>  as background rendering engine</summary>
+
+**Much faster**, **higher rendering quality**, but HDR sky is not enabled in this case.
+
+### Step 2: Faster alternative of McNeRF, 3D Gaussians splatting
+This requires the your CUDA NVCC version matches your pytorch cuda version.
+```bash
+# make CUDA (nvcc) version consistent with the pytorch CUDA version.
+
+# first check your CUDA (nvcc) version
+nvcc -V # for example: Build cuda_11.8.r11.8
+
+# go to https://pytorch.org/get-started/previous-versions/ to find a corresponding one. The version of pytorch itself should >= 1.13.
+
+# We list a few options here for quick setup.
+# CUDA 11.6 
+pip install torch==1.13.0+cu116 torchvision==0.14.0+cu116 torchaudio==0.13.0 --extra-index-url https://download.pytorch.org/whl/cu116
+# CUDA 11.7
+pip install torch==1.13.0+cu117 torchvision==0.14.0+cu117 torchaudio==0.13.0 --extra-index-url https://download.pytorch.org/whl/cu117
+# CUDA 11.8
+conda install pytorch==2.0.0 torchvision==0.15.0 torchaudio==2.0.0 pytorch-cuda=11.8 -c pytorch -c nvidia
+# CUDA 12.1
+conda install pytorch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0 pytorch-cuda=12.1 -c pytorch -c nvidia
+
+pip install -r requirements.txt
+imageio_download_bin freeimage
+
+cd chatsim/background/gaussian-splatting/
+pip install submodules/simple-knn
+```
+
+</details>
+
 
 ### Step 3: Install Inpainting tools
 
@@ -196,7 +242,7 @@ segment-15365821471737026848_1160_000_1180_000_with_camera_labels
 segment-15868625208244306149_4340_000_4360_000_with_camera_labels
 segment-16345319168590318167_1420_000_1440_000_with_camera_labels
 segment-16608525782988721413_100_000_120_000_with_camera_labels
-segment-16646360389507147817_3320_000_3340_000_with_camera_labels
+segment-16646360389507147817_3320_000_3340_000_with_camera_labels (deprecated)
 segment-3425716115468765803_977_756_997_756_with_camera_labels
 segment-3988957004231180266_5566_500_5586_500_with_camera_labels
 segment-8811210064692949185_3066_770_3086_770_with_camera_labels
@@ -242,14 +288,32 @@ This will generate the data folder `data/waymo_multi_view`.
 #### Recalibrate waymo data (or just download our recalibrated files)
 ```bash
 cd ../data
+
+# calibration files using metashape
+# you can also got to https://drive.google.com/file/d/1ms4yhjH5pEDMhyf_CfzNEYq5kj4HILki/view?usp=sharing to download mannually
 gdown 1ms4yhjH5pEDMhyf_CfzNEYq5kj4HILki
 unzip recalibrated_poses.zip
 rsync -av recalibrated_poses/ waymo_multi_view/
 rm -r recalibrated_poses*
+
+
+# if you use 3D Guassian Splatting, you also need to download following files
+# calibration files using colmap, also point cloud for 3DGS training
+# you can also go to https://huggingface.co/datasets/yifanlu/waymo_recalibrated_poses_colmap/tree/main to download mannually
+git lfs install
+git clone https://huggingface.co/datasets/yifanlu/waymo_recalibrated_poses_colmap
+git lfs pull # ~ 2GB
+tar xvf waymo_recalibrated_poses_colmap.tar
+cd ..
+rsync -av waymo_recalibrated_poses_colmap/waymo_multi_view/ waymo_multi_view/
+rm -rf waymo_recalibrated_poses_colmap
 ```
 
-If you want to do the recalibration yourself, you need to use COLMAP or Metashape to calibrate images in the `data/waymo_multi_view/{SCENE_NAME}/images` folder and convert them back to the waymo world coordinate. Please follow the tutorial in `data_utils/README.md`. And the final camera extrinsics and intrinsics are stored as `cam_meta.npy`.
+If you want to do the recalibration yourself, you need to use COLMAP or Metashape to calibrate images in the `data/waymo_multi_view/{SCENE_NAME}/images` folder and convert them back to the waymo world coordinate. Please follow the tutorial in `data_utils/README.md`. And the final camera extrinsics and intrinsics are stored as `cam_meta.npy` (metashape case) or `colmap/sparse_undistorted/cam_meta.npy` (colmap case, necessary for 3dgs training).
 
+![compare](./img/pose_compare.png)
+
+Final data folder will be like:
 ```bash
 data
 `-- waymo_multi_view
@@ -267,9 +331,9 @@ data
         |-- shutters                    # normalized exposure time (mean=0 std=1)
         |-- tracking_info.pkl           # tracking data
         |-- vehi2veh0.npy               # transformation matrix from i-th frame's vehicle coordinate to the first frame's vehicle 
-        |-- colmap/sparse_undistorted   # calibration files from COLMAP (intermediate file, only required when using 3dgs rendering)
-        `-- camera.xml                  # calibration file from Metashape (intermediate file, not required by simulation inference)
-        coordinate.
+        |-- camera.xml                  # calibration file from Metashape (intermediate file, not required by simulation inference)
+        `-- colmap/sparse_undistorted/[images/cams_meta.npy/points3D_waymo.ply]   # calibration files from COLMAP (intermediate file, only required when using 3dgs rendering)
+        
 ```
 
 **Coordinate Convention**
@@ -323,14 +387,17 @@ You can also train the skydome estimation network yourself. Go to `chatsim/foreg
 
 ## Train and simulation
 
-### Train McNeRF
-```
+Either train `McNeRF` or `3D Gaussian Splatting`, depends on your installation.
+
+<details> <summary><span style="font-weight: bold;">Train McNeRF</span></summary>
+
+```bash
 cd chatsim/background/mcnerf
 ```
 Make sure you have the `data` folder linking to `../../../data`. If haven't, run `ln -s ../../../data data`.
 Then train your model with 
 
-```
+```bash
 python scripts/run.py --config-name=wanjinyou_big \
 dataset_name=waymo_multi_view case_name=${CASE_NAME} \
 exp_name=${EXP_NAME} dataset.shutter_coefficient=0.15 mode=train_hdr_shutter +work_dir=$(pwd) 
@@ -338,7 +405,30 @@ exp_name=${EXP_NAME} dataset.shutter_coefficient=0.15 mode=train_hdr_shutter +wo
 where `${CASE_NAME}` are those like `segment-11379226583756500423_6230_810_6250_810_with_camera_labels` and `${EXP_NAME}` can be anything like `exp_coeff_0.15`. `dataset.shutter_coefficient = 0.15` or `dataset.shutter_coefficient = 0.3` work well.
 
 You can simply run scripts like `bash train-1137.sh` for training and `bash render_novel_view-1137.sh` for testing. 
+</details>
 
+
+<details> <summary><span style="font-weight: bold;">Train 3D Gaussian Splatting</span></summary>
+
+```bash
+cd chatsim/background/gaussian-splatting
+```
+Make sure you have the `data` folder linking to `../../../data`. If haven't, run `ln -s ../../../data data`.
+Then train your model with 
+
+```bash
+# example
+SCENE_NAME=segment-11379226583756500423_6230_810_6250_810_with_camera_labels
+
+python train.py --config configs/chatsim/original.yaml source_path=data/waymo_multi_view/${SCENE_NAME}/colmap/sparse_undistorted model_path=output/${SCENE_NAME}
+
+# rendering
+python render.py -m output/${SCENE_NAME}
+```
+
+You can simply run scripts like `bash train-1137.sh` for training.
+
+</details>
 
 #### Start simulation
 Set the API to environment variable. Also set `OPENAI_API_BASE` if you have network issue (especially in China mainland).

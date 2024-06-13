@@ -1,11 +1,11 @@
-scene_name: &scene_name segment-14424804287031718399_1281_030_1301_030_with_camera_labels
+scene_name: &scene_name segment-17761959194352517553_5448_420_5468_420_with_camera_labels
 
 scene:
   data_root: data/waymo_multi_view
   scene_name: *scene_name
   
   # suppose these files are under $data_root/$scene_name/ 
-  ext_int_file: 'colmap/sparse_undistorted/cams_meta.npy'       # extrinsic and intrinsic parameters
+  ext_int_file: 'cams_meta.npy'
   bbox_file: '3d_boxes.npy'
   map_file: 'map.pkl'
   init_img_file: 'wide_init_img.png'
@@ -57,7 +57,7 @@ agents:
     nerf_config: *nerf_config
 
     skydome_hdri_dir: data/waymo_skydome
-    skydome_hdri_idx: '015' # manually select
+    skydome_hdri_idx: '000' # manually select
 
     use_surrounding_lighting: false # only use skydome lighting
 
