@@ -6,9 +6,9 @@ Editable Scene Simulation for Autonomous Driving via LLM-Agent Collaboration
 ![teaser](./img/chatsim_overview.png)
 
 ## News
-[06/12/2024] **background rendering speed up**: 3D Gaussian splatting is integrated as a background rendering engine, rendering 50 frames within 30s.
+[06/12/2024] 🔥🔥🔥 **background rendering speed up**! **3D Gaussian splatting** is integrated as a background rendering engine, rendering 50 frames within 30s.
 
-[06/12/2024] **foreground rendering speed up**: multiple process for blender rendering in parallel! rendering 50 frames within 5 minutes (8 x NVIDIA RTX 4090).
+[06/12/2024] 🔥🔥🔥 **foreground rendering speed up**! multiple process for blender rendering in parallel! rendering 50 frames within 5 minutes (8 x NVIDIA RTX 4090).
 
 ## Requirement
 - Ubuntu version >= 20.04 (for using Blender 3.+)
