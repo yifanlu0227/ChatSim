@@ -6,9 +6,9 @@ Editable Scene Simulation for Autonomous Driving via LLM-Agent Collaboration
 ![teaser](./img/chatsim_overview.png)
 
 ## News
-[06/12/2024] **background rendering speed up**: 3D Gaussian splatting is integrated as a background rendering engine, rendering 50 frames within 30s.
+[06/12/2024] 🔥🔥🔥 **background rendering speed up**! **3D Gaussian splatting** is integrated as a background rendering engine, rendering 50 frames within 30s.
 
-[06/12/2024] **foreground rendering speed up**: multiple process for blender rendering in parallel! rendering 50 frames within 5 minutes (8 x NVIDIA RTX 4090).
+[06/12/2024] 🔥🔥🔥 **foreground rendering speed up**! multiple process for blender rendering in parallel! rendering 50 frames within 5 minutes (8 x NVIDIA RTX 4090).
 
 ## Requirement
 - Ubuntu version >= 20.04 (for using Blender 3.+)
@@ -48,7 +48,7 @@ https://github.com/yifanlu0227/ChatSim/assets/45688237/e7ac487c-5615-455d-bb38-0
 Installing either one is OK! If you want high rendering speed and do not care about brightness inconsistency, choose `3D Gaussian Splatting`. 
 
 <details>
-<summary><span style="font-weight: bold;"> McNeRF (official implement in the paper) </span> as background rendering engine </summary>
+<summary><span style="font-weight: bold;"> Install McNeRF (official implement in the paper) </summary>
     
 ```bash
 pip install torch==1.13.1+cu117 torchvision==0.14.1+cu117 torchaudio==0.13.1 --extra-index-url https://download.pytorch.org/whl/cu117
@@ -102,7 +102,7 @@ If the mcnerf code is modified, the last two lines should always be executed.
 </details>
 
 <details>
-<summary><span style="font-weight: bold;"> 3D Gaussians Splatting </span>  as background rendering engine</summary>
+<summary><span style="font-weight: bold;"> Install 3D Gaussians Splatting </span></summary>
 
 **Much faster**, **higher rendering quality**, but HDR sky is not enabled in this case.
 
