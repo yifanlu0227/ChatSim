@@ -143,8 +143,8 @@ def vehicle_placement(input_map,current_vertices,direction,vehicle_mode,distance
     # parameter list
     vehicle_size_x = 2
     vehicle_size_y = 4.5
-    distance_min_default = 0
-    distance_max_default = 50
+    distance_min_default = 4
+    distance_max_default = 45
 
 
     front_placement_distance_threshold = 8

@@ -29,8 +29,8 @@ class Scene(nn.Module):
         self.fps = config.get('fps', 20)
         self.frames = config['frames']
         self.multi_process_num = config.get('multi_process_num', 1)
-        self.if_backup = config.get('if_backup', True)
-        self.if_with_depth = config.get('if_with_depth', False)
+        self.backup_hdri = config.get('backup_hdri', True)
+        self.depth_and_occlusion = config.get('depth_and_occlusion', False)
 
         """
         [static scene data] 

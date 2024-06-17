@@ -42,16 +42,15 @@ def render(render_opt):
     # back up hdri and rgb image
     render_output_backup_dir = os.path.join(render_output_dir, 'backup')
     check_mkdir(render_output_backup_dir)
-    imageio.imsave(os.path.join(render_output_backup_dir, 'RGB.png'), background_RGB) # backup for RGB is necessary for rendering
-    if render_opt['if_backup'] == True:
+    imageio.imsave(os.path.join(render_output_backup_dir, 'RGB.png'), background_RGB) # save background RGB is necessary for rendering
+
+    if render_opt['backup_hdri'] == True:
         shutil.copy(hdri_file, os.path.join(render_output_backup_dir, 'hdri.exr'))
 
-    render_simplification = {}
-    render_simplification['if_with_depth'] = render_opt['if_with_depth']
-    render_simplification['if_backup'] = render_opt['if_backup']
+    depth_and_occlusion = render_opt['depth_and_occlusion']
 
-    render_scene(render_output_dir, intrinsic, model_obj_names, render_downsample, render_simplification)
-    compose(render_output_dir, background_RGB, background_depth, render_downsample, motion_blur_degree, render_opt['if_with_depth'])
+    render_scene(render_output_dir, intrinsic, model_obj_names, render_downsample, depth_and_occlusion)
+    compose(render_output_dir, background_RGB, background_depth, render_downsample, motion_blur_degree, depth_and_occlusion)
 
 def main():
     def parse_argv(argv):

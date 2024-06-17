@@ -75,7 +75,7 @@ class MotionAgent:
                     " If there's no relevant information mentioned, it defaults to 0."
 
             q3 = " (3) 'distance_min_max' represents the range of constraints when 'distance_constraint' applicable. It should be a tuple in the format (min, max), for example, (9, 11) means the minimum distance is 9, and the maximum is 11." + \
-                    " When there's 'distance_constraint' is 0, the default value is (0, 50). If distance is specified as a specific value 'x', 'distance_min_max' is (x, x+5)"
+                    " When there's 'distance_constraint' is 0, the default value is (4, 45). If distance is specified as a specific value 'x', 'distance_min_max' is (x, x+5)"
 
             q4 = "Just return the json dict with keys:'mode', 'distance_constraint', 'distance_min_max'. Do not return any code or discription."
 
@@ -83,7 +83,7 @@ class MotionAgent:
                     "{'mode':'front', 'distance_constraint': 1, 'distance_min_max':(7,10)}"
 
             q6 = "An Example: Given operation statement: 'Add an Porsche in the right front.', you should return " + \
-                    "{'mode':'right front', 'distance_constraint': 0, 'distance_min_max':(0,50)}"
+                    "{'mode':'right front', 'distance_constraint': 0, 'distance_min_max':(4, 45)}"
 
             q7 = "Note that you should not return any code or explanations, only provide a JSON dictionary."
 

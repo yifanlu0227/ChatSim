@@ -83,7 +83,7 @@ def compose(rendered_output_dir,
             background_depth,
             render_downsample,
             motion_blur_degree,
-            if_with_depth):
+            depth_and_occlusion):
     """
     Args:
         rendered_output_dir: str
@@ -93,7 +93,7 @@ def compose(rendered_output_dir,
         background_depth: np.ndarray
             background depth image
     """
-    if if_with_depth == False:
+    if depth_and_occlusion == False:
         RGB_over_background = read_from_render(rendered_output_dir, 'RGB', 'vehicle_and_shadow_over_background') # [H, W, 4]
         H, W = RGB_over_background.shape[:2]
 

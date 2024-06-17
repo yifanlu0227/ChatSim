@@ -96,7 +96,9 @@ class ForegroundRenderingAgent:
                 self.func_blender_add_cars_prepare_files_single_frame(scene, frame_id, background_depth_list)
 
             # parallel rendering process for all frames
-            print(f'start rendering in parallel... MP={scene.multi_process_num}')
+            print(f'start rendering in parallel, process number is {scene.multi_process_num}.')
+            print('This may take a few minutes. To speed up the foreground rendering, you can lower the `frames` number or render not-wide images.')
+            print('If you find the results are incomplete, that may due to OOM. You can reduce the multi_process_num in config yaml.')
             self.func_parallel_blender_rendering(scene)
 
             print(f"{colored('[Blender]', 'magenta', attrs=['bold'])} Finish rendering {real_render_frames} images.")
@@ -256,8 +258,8 @@ class ForegroundRenderingAgent:
             "hdri_file": final_hdri_path,
             "render_downsample": 2,
             "cars": car_list_for_blender,
-            "if_with_depth": scene.if_with_depth,
-            "if_backup": scene.if_backup
+            "depth_and_occlusion": scene.depth_and_occlusion,
+            "backup_hdri": scene.backup_hdri
         }
 
         with open(yaml_path, "w", encoding="utf-8") as f:

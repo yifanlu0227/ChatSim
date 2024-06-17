@@ -57,7 +57,7 @@ def set_render_params(render_H, render_W, render_downsample, sample_num=32, devi
 
 
 
-def set_composite_node(output_dir, render_downsample, render_simplification):
+def set_composite_node(output_dir, render_downsample, depth_and_occlusion):
     """
         setup composite node.
     """
@@ -90,20 +90,19 @@ def set_composite_node(output_dir, render_downsample, render_simplification):
 
     # Create File Output node for RGB file.
     # RGB is the render vehicle + shadow over background (RGBA, no depth test)
-    if render_simplification['if_backup'] == True:
-        RGB_output_node = tree_nodes.new('CompositorNodeOutputFile')
-        RGB_output_node.name = 'RGB_output_node'
-        RGB_output_node.location = 1500, 200
-        RGB_output_node.format.file_format = 'PNG'  # 设置输出格式
-        RGB_output_node.format.color_mode = 'RGBA'
-        RGB_folder = os.path.join(output_dir, 'RGB')
-        RGB_output_node.base_path = RGB_folder  # 设置输出目录
-        RGB_output_node.file_slots[0].path = "vehicle_and_shadow_over_background" # the filename will append 0001 as suffix
-        check_mkdir(RGB_folder)
+    RGB_output_node = tree_nodes.new('CompositorNodeOutputFile')
+    RGB_output_node.name = 'RGB_output_node'
+    RGB_output_node.location = 1500, 200
+    RGB_output_node.format.file_format = 'PNG'  # 设置输出格式
+    RGB_output_node.format.color_mode = 'RGBA'
+    RGB_folder = os.path.join(output_dir, 'RGB')
+    RGB_output_node.base_path = RGB_folder  # 设置输出目录
+    RGB_output_node.file_slots[0].path = "vehicle_and_shadow_over_background" # the filename will append 0001 as suffix
+    check_mkdir(RGB_folder)
 
     # Create File Output node for depth file.
     # depth is vehicle + plane (RGB, with very large number 65534 at empty place)
-    if render_simplification['if_with_depth'] == True:
+    if depth_and_occlusion == True:
         depth_output_node = tree_nodes.new('CompositorNodeOutputFile')
         depth_output_node.name = 'Depth_output_node'
         depth_output_node.location = 1500, 0
@@ -116,7 +115,7 @@ def set_composite_node(output_dir, render_downsample, render_simplification):
 
     # Create File Output node for mask file.
     # mask is vehicle + shadow (RGBA, with very large number 65534 at empty places)
-    if render_simplification['if_backup'] == True:
+    if depth_and_occlusion == True:
         mask_output_node = tree_nodes.new('CompositorNodeOutputFile')
         mask_output_node.name = "Mask_output_node"
         mask_output_node.location = 1500, -300
@@ -177,7 +176,7 @@ def set_composite_node(output_dir, render_downsample, render_simplification):
     # links.new(render_node.outputs['Shadow Catcher'], transform_node_for_shadow_catcher.inputs['Image'])
 
     # depth 
-    if render_simplification['if_with_depth'] == True:
+    if depth_and_occlusion == True:
         links.new(render_node.outputs['Depth'], depth_output_node.inputs[0])
 
     # RGB over background
@@ -190,7 +189,7 @@ def set_composite_node(output_dir, render_downsample, render_simplification):
     links.new(alpha_over_node.outputs['Image'], RGB_output_node.inputs[0])
 
     # mask 
-    if render_simplification['if_with_depth'] == True:
+    if depth_and_occlusion == True:
         links.new(render_node.outputs['Alpha'], set_alpha_node_2.inputs['Alpha'])
         links.new(render_node.outputs['Shadow Catcher'], invert_node.inputs['Color']) 
         links.new(invert_node.outputs['Color'], set_alpha_node_1.inputs['Alpha'])
@@ -207,10 +206,10 @@ def render_scene(output_dir,
                  intrinsic,
                  model_obj_names,
                  render_downsample,
-                 render_simplification):
+                 depth_and_occlusion):
     
     set_render_params(intrinsic['H'], intrinsic['W'], render_downsample)
-    node_tree = set_composite_node(output_dir, render_downsample, render_simplification)
+    node_tree = set_composite_node(output_dir, render_downsample, depth_and_occlusion)
     
     # encode object's position, rotation, dimension to 8 corners
     objects_corners = dict()

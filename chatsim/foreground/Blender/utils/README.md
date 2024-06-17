@@ -13,35 +13,39 @@ Note that Blender 3.0+ required at least Ubuntu 20.04. (GLIBC_2.28)
 
 ### Find Blender Python 
 You can run this in Blender's python interactive console. But if you can find blender python path directly, just go to edit bashrc.
-```
+```python
 import sys
 python_exe = os.path.join(sys.prefix,  'bin', 'python3.10')
 ```
 It is located at `/usr/local/blender-3.5.1-linux-x64/3.5/python/bin/python3.10` in my PC. 
 
-### Edit ~/.bashrc to create a shortcut
+### Make a softlink to assets
+```bash
+ln -s ../../../../data/blender_assets assets
 ```
+
+### Edit ~/.bashrc to create a shortcut
+```bash
 alias blender='/usr/local/blender-3.5.1-linux-x64/blender'
 alias blender_python='/usr/local/blender-3.5.1-linux-x64/3.5/python/bin/python3.10'
 ```
 
 ### Install This Repo for Blender Python
-```
-git clone https://github.com/yifanlu0227/BlenderUtils.git
-cd BlenderUtils
-blender_python setup.py develop
+```bash
+source ~/.bashrc # make sure alias takes effect
+blender_python setup.py develop # install this package
 ```
 
 
 ### Install Package for Blender Python (Example)
 #### From command line
 
-```
+```bash
 blender_python -m pip install package-name
 ```
 #### From python script 
 
-```
+```python
 import subprocess
 import sys
 import os
@@ -74,11 +78,9 @@ blender_python -m pip install pyquaternion
     ```import imageio; imageio.plugins.freeimage.download()```
 
 
-
-
 ## Usage 
 ### Virtual Object Insertion
-Look at the yaml file, for example: config/chevrolet_red.yaml
+Look at the yaml file, for example:
 ``` yaml
 # name for this rendering pass, also the name of output folder
 render_name: multi_demo_1346
@@ -152,17 +154,11 @@ It is stored in a npz file, and should include keys like:
 ### Usage
 Once you have the yaml and the scene/blender/hdri files needed inside the yaml. You can render the results with:
 ```bash
-blender -b --python blender_utils/main_multicar.py -- config/1346_multi_car_demo.yaml
+blender -b --python blender_utils/main_multicar.py -- config/1346_multi_car_demo.yaml -- 0 -- 1 
 ```
+The last two arguments refers to start and end frame index. Since we only have one frame (one yaml) in this demo, we set them to 0 and 1.
 
-Note that the x,y euler of `insert_rot` is model-specific currently. For example, chevrolet is not consistent with others, require insert_rot[0] = 1.507. I shall fix it later.
-
-To render a single car, use main.py. It would be deprecated later.
-```bash
-blender -b --python blender_utils/main.py -- config/single_car/chevrolet.yaml
-```
-
-In the output folder, you will see
+In the output folder, you will see the following complete result when `depth_and_occlusion` is enabled.
 ```
 ├── backup
 │   ├── hdri.exr

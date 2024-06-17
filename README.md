@@ -469,8 +469,11 @@ python main.py -y ${CONFIG YAML} \
 - `${SIMULATION NAME}` determines the name of the folder when saving results. default `demo`.
 
 You can try
-``` bash
-python main.py -y config/waymo-1137.yaml -p 'add a straight driving car in the scene' 
+```bash
+# if you train nerf
+python main.py -y config/waymo-1137.yaml -p "Add a Benz G in front of me, driving away fast."
+# if you train 3DGS
+python main.py -y config/3dgs-waymo-1137.yaml -p "Add a Benz G in front of me, driving away fast."
 ```
 
 The rendered results are saved in `results/1137_demo_%Y_%m_%d_%H_%M_%S`. Intermediate files are saved in `results/cache/1137_demo_%Y_%m_%d_%H_%M_%S` for debug and visualization if `save_cache` are enabled in `config/waymo-1137.yaml`.

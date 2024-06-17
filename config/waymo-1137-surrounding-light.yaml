@@ -15,8 +15,8 @@ scene:
   frames: 50                          # number of frames to render
   fps: 5
   multi_process_num: 5                       # multiple process num of foreground rendering
-  if_with_depth: false                # whether the foreground rendering process considering depth and occlusion
-  if_backup: true                    # whether save the backup files for foreground rendering debugging(HDRI, images, depth)
+  depth_and_occlusion: false                # whether the foreground rendering process considering depth and occlusion
+  backup_hdri: true                    # whether save the backup files for foreground rendering debugging(HDRI, images, depth)
 
   # under root directory
   cache_dir: 'results/cache'          # cache directory

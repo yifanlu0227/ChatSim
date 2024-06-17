@@ -6,6 +6,9 @@ hdri_file: assets/scene-demo-1137/0.exr
 
 render_downsample: 2
 
+depth_and_occlusion: false
+backup_hdri: true
+
 cars: 
   - new_obj_name: Audi_Q3_2023 # should be different across each instance
     blender_file: assets/Audi_Q3_2023.blend
