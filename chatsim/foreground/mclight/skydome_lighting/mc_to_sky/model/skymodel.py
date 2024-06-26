@@ -15,8 +15,6 @@ from functools import reduce
 
 from mc_to_sky.loss import build_loss
 from mc_to_sky.model.sub_module import build_module
-
-from mc_to_sky.model.sub_module.unet import UNet
 from mc_to_sky.utils.hdr_utils import (srgb_gamma_correction_torch,
                                         srgb_inv_gamma_correction_torch)
 

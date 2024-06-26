@@ -18,7 +18,6 @@ from mc_to_sky.model.skymodel import SkyModel
 from mc_to_sky.model.skymodel_enhanced import SkyModelEnhanced
 from mc_to_sky.model.sub_module.residual import build_layer
 from mc_to_sky.model.sub_module.skypred_modules import build_latent_predictor
-from mc_to_sky.model.sub_module.unet import UNet
 from mc_to_sky.utils.hdr_utils import srgb_gamma_correction_torch
 from mc_to_sky.model.sub_module import build_module
 from mc_to_sky.loss import build_loss

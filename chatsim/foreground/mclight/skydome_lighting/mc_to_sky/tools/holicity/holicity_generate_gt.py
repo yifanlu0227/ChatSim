@@ -4,7 +4,6 @@ import argparse
 from torch.utils.data import Dataset, DataLoader, Subset
 import pytorch_lightning as pl
 from mc_to_sky.utils.yaml_utils import read_yaml
-from mc_to_sky.model.skymodel import SkyModel
 from mc_to_sky.utils.hdr_utils import srgb_gamma_correction
 from mc_to_sky.utils.train_utils import (build_model, check_and_mkdirs,
                                           get_exp_dir)

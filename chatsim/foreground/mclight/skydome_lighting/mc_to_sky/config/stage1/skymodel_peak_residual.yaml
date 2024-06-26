@@ -2,7 +2,7 @@
 exp_name: stage1_recon_pano_peak_residual_wb_adjust
 
 train_conf:
-  epoch: 1000
+  epoch: 400
   batch_size: 8
   accelerator: gpu
   device_num: 1

@@ -20,8 +20,6 @@ pip install -r requirements.txt
 
 ### install this repo as a package
 
-clone the repository and setup this repo.
-
 ```
 python setup.py develop
 mkdir dataset # create a folder for dataset
@@ -65,51 +63,52 @@ dataset
 **Train**
 
 ```bash
-python mc_to_sky/tool/train.py -y mc_to_sky/config/stage1/skymodel_peak_enhanced.yaml
+python mc_to_sky/tools/train.py -y mc_to_sky/config/stage1/skymodel_peak_residual.yaml
 ```
 Then we use the trained model to predict pseduo HDRI GT for HoliCity dataset. You can find a `config.yaml` and the best checkpoint inside the log folder, we denote them `STAGE_1_CONFIG` and `STAGE_1_BEST_CKPT` respectively.
 
 ```bash
-python mc_to_sky/tools/holicity/holicity_generate_gt.py -y STAGE_1_CONFIG -c STAGE_1_BEST_CKPT --target_dir dataset/holicity_pano_hdr 
+python mc_to_sky/tools/holicity/holicity_generate_gt.py -y mc_to_sky/config/stage1/skymodel_peak_residual.yaml -c STAGE_1_BEST_CKPT --target_dir dataset/holicity_pano_hdr 
 ```
-Now `dataset/holicity_pano_hdr` stores the pseduo HDRI GT.
+Now `dataset/holicity_pano_hdr` stores the pseduo HDRI GT for holicity dataset.
 
 **Test**
 
 You can validate and test your checkpoint by
 
 ```bash
-python mc_to_sky/tools/test.py -y STAGE_1_CONFIG -c STAGE_1_BEST_CKPT
+python mc_to_sky/tools/test.py -y mc_to_sky/config/stage1/skymodel_peak_residual.yaml -c STAGE_1_BEST_CKPT
 ```
+results are stored in `<logdir>/lightning_logs/version_i/visualization`
 
 ### Stage 2: Train HDRI predictor from multiview images
 **Train**
 
 First edit line 43 of `mc_to_sky/config/stage2/multi_view_avg.yaml`, put `STAGE_1_BEST_CKPT` as the value. Then conduct the stage 2 training. 
 ```bash
-python mc_to_sky/tool/train.py -y mc_to_sky/config/stage2/multi_view_avg.yaml
+python mc_to_sky/tools/train.py -y mc_to_sky/config/stage2/multi_view_avg.yaml
 ```
 **Test**
 
 You can also validate and test your checkpoint by
 ```bash
-python mc_to_sky/tools/test.py -y STAGE_2_CONFIG -c STAGE_2_BEST_CKPT
+python mc_to_sky/tools/test.py -y mc_to_sky/config/stage2/multi_view_avg.yaml -c STAGE_2_BEST_CKPT
 ```
-where `STAGE_2_CONFIG` and `STAGE_2_BEST_CKPT` refers to the new training log.
+where `STAGE_2_BEST_CKPT` refers to the new training log's best checkpoint.
 
 **Infer**
 
 We directly adopt the model trained on HoliCity for the inference on Waymo dataset.
 ```bash
-python mc_to_sky/tools/infer.py -y STAGE_2_CONFIG -c STAGE_2_BEST_CKPT -i IMAGE_FOLDER -o OUPUT_FOLDER
+python mc_to_sky/tools/infer.py -y mc_to_sky/config/stage2/multi_view_avg.yaml -c STAGE_2_BEST_CKPT -i IMAGE_FOLDER -o OUPUT_FOLDER
 ```
 
-The `IMAGE_FOLDER` should contain continuous image data, for example, pictures from three views should be put together and follow the order in `STAGE_2_CONFIG['view_setting']['view_dis']`. Note that `IMAGE_FOLDER` can include multiple frames, an examplar image sequence can be `[frame_1_front, frame_1_front_left, frame_1_front_right, frame_2_front, frame_2_front_left, frame_2_front_right, ...]`
+The `IMAGE_FOLDER` should contain continuous image data, for example, pictures from three views should be put together and follow the order in `STAGE_2_CONFIG['view_setting']['view_dis']`. Note that `IMAGE_FOLDER` can include multiple frames, an examplar image sequence can be `[frame_1_front, frame_1_front_left, frame_1_front_right, frame_2_front, frame_2_front_left, frame_2_front_right, ...]`. For our waymo dataset, you can point `IMAGE_FOLDER` to `data/waymo_multi_view/$SCENE_NAME/images` in our ChatSim.
 
 
 We further provide `mc_to_sky/tools/infer_waymo_batch.py` which add another loop on the scene-level. 
 ```bash
-python mc_to_sky/tools/infer.py -y STAGE_2_CONFIG -c STAGE_2_BEST_CKPT -waymo_scenes_dir WAYMO_SCENE_DIR -o OUPUT_FOLDER
+python mc_to_sky/tools/infer_waymo_batch.py -y mc_to_sky/config/stage2/multi_view_avg.yaml -c STAGE_2_BEST_CKPT --waymo_scenes_dir WAYMO_SCENE_DIR -o OUPUT_FOLDER
 ```
 where we suppose the `WAYMO_SCENE_DIR` have the following structure
 ```
@@ -127,4 +126,4 @@ WAYMO_SCENE_DIR
 ```
 
 ## Pretrain
-download the pretrain from [Google Drive](https://drive.google.com/file/d/1vc8LeChk-wH4YTYEOGbxfng8TB6RBYL7/view?usp=drive_link)
+download the pretrain models (`STAGE_1_BEST_CKPT` and `STAGE_2_BEST_CKPT`) from [Google Drive](https://drive.google.com/file/d/1vc8LeChk-wH4YTYEOGbxfng8TB6RBYL7/view?usp=drive_link)
