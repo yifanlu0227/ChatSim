@@ -154,7 +154,7 @@ It is stored in a npz file, and should include keys like:
 ### Usage
 Once you have the yaml and the scene/blender/hdri files needed inside the yaml. You can render the results with:
 ```bash
-blender -b --python blender_utils/main_multicar.py -- config/1346_multi_car_demo.yaml -- 0 -- 1 
+blender -b --python blender_utils/main_multicar.py -- config/Wide_angle_test -- 0 -- 1 
 ```
 The last two arguments refers to start and end frame index. Since we only have one frame (one yaml) in this demo, we set them to 0 and 1.
 
