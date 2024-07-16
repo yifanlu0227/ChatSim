@@ -1,23 +1,7 @@
 # BlenderUtils
 This repo provides a CLI tool for Blender rendering without opening Blender GUI.
 
-## Installation
-
-### Download/Install Blender
-[Official Download](https://www.blender.org/download/)
-
-Blender 3.0+ is recommended. 
-
-Note that Blender 3.0+ required at least Ubuntu 20.04. (GLIBC_2.28)
-
-
-### Find Blender Python 
-You can run this in Blender's python interactive console. But if you can find blender python path directly, just go to edit bashrc.
-```python
-import sys
-python_exe = os.path.join(sys.prefix,  'bin', 'python3.10')
-```
-It is located at `/usr/local/blender-3.5.1-linux-x64/3.5/python/bin/python3.10` in my PC. 
+Suppose you have already finished the **Step 4** in the ChatSim's README.
 
 ### Make a softlink to assets
 ```bash
@@ -26,61 +10,16 @@ ln -s ../../../../data/blender_assets assets
 
 ### Edit ~/.bashrc to create a shortcut
 ```bash
-alias blender='/usr/local/blender-3.5.1-linux-x64/blender'
-alias blender_python='/usr/local/blender-3.5.1-linux-x64/3.5/python/bin/python3.10'
+vim ~/.bashrc
+
+# add the following line to ~/.bashrc
+alias blender=<ChatSim_project>/chatsim/foreground/Blender/blender-3.5.1-linux-x64/blender
 ```
-
-### Install This Repo for Blender Python
-```bash
-source ~/.bashrc # make sure alias takes effect
-blender_python setup.py develop # install this package
-```
-
-
-### Install Package for Blender Python (Example)
-#### From command line
-
-```bash
-blender_python -m pip install package-name
-```
-#### From python script 
-
-```python
-import subprocess
-import sys
-import os
-
-# 2. path to python
-python_exe = os.path.join(sys.prefix,  'bin', 'python3.10')
-# 3. upgrade pip
-subprocess.call([python_exe, "-m", "ensurepip"])
-subprocess.call([python_exe, "-m", "pip", "install", "--upgrade", "pip"])
-# 4. install required packages
-subprocess.call([python_exe, "-m", "pip", "install", "pyquaternion"])
-# 5. use tsinghua mirror
-#subprocess.call([python_exe, "-m", "pip", "install", "package_name",  "-i", "https://pypi.tuna.tsinghua.edu.cn/simple"])
-```
-
-### Install Requirement for BlenderUtils
-1. Python package requirement.
-```bash
-blender_python -m pip install imageio
-blender_python -m pip install numpy
-blender_python -m pip install pyyaml
-blender_python -m pip install pyquaternion
-```
-2. [imageio requirement](https://blog.csdn.net/bby1987/article/details/105826595): To read .exr file, need FreeImage library. You can obtain it with either:
-- download in terminal:
- 
-    ```imageio_download_bin freeimage```
-- download in python CLI: 
-
-    ```import imageio; imageio.plugins.freeimage.download()```
-
+note that `<ChatSim_project>` is where you clone the ChatSim repo. 
 
 ## Usage 
 ### Virtual Object Insertion
-Look at the yaml file, for example:
+Look at the yaml files in `<ChatSim_project>/chatsim/foreground/Blender/utils/config`, for example:
 ``` yaml
 # name for this rendering pass, also the name of output folder
 render_name: multi_demo_1346
