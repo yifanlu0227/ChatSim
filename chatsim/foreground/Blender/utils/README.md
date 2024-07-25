@@ -95,7 +95,15 @@ Once you have the yaml and the scene/blender/hdri files needed inside the yaml. 
 ```bash
 blender -b --python blender_utils/main_multicar.py -- config/Wide_angle_test -- 0 -- 1 
 ```
-The last two arguments refers to start and end frame index. Since we only have one frame (one yaml) in this demo, we set them to 0 and 1.
+The last two arguments refers to start and end frame index. Since we only have one frame (one yaml) in this demo, we set them to 0 and 1. `-b` means running blender in the background。
+
+### Debug in GUI
+
+If you have a display, you can remove the `-b` option. All operations will be showing in the blender GUI.
+```bash
+blender --python blender_utils/main_multicar.py -- config/Wide_angle_test -- 0 -- 1 
+```
+
 
 In the output folder, you will see the following complete result when `depth_and_occlusion` is enabled.
 ```
