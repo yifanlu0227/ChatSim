@@ -98,7 +98,8 @@ class ForegroundRenderingAgent:
             # parallel rendering process for all frames
             print(f'start rendering in parallel, process number is {scene.multi_process_num}.')
             print('This may take a few minutes. To speed up the foreground rendering, you can lower the `frames` number or render not-wide images.')
-            print('If you find the results are incomplete, that may due to OOM. You can reduce the multi_process_num in config yaml.')
+            print('If you find the results are incomplete or missing, that may due to OOM. You can reduce the multi_process_num in config yaml.')
+            print('You can also check the log file for debugging with `save_cache` enabled in the yaml.')
             self.func_parallel_blender_rendering(scene)
 
             print(f"{colored('[Blender]', 'magenta', attrs=['bold'])} Finish rendering {real_render_frames} images.")
