@@ -104,10 +104,10 @@ If the mcnerf code is modified, the last two lines should always be executed.
 <details>
 <summary><span style="font-weight: bold;"> Install 3D Gaussians Splatting </span></summary>
 
-**Much faster**, **higher rendering quality**, but HDR sky is not enabled in this case.
+3DGS has much faster inference speed, higher rendering quality. But the HDR sky is not enabled in this case.
 
-### Step 2: Faster alternative of McNeRF, 3D Gaussians splatting
-This requires that your CUDA NVCC version matches your pytorch cuda version.
+Installing 3DGS requires that your CUDA NVCC version matches your pytorch cuda version.
+
 ```bash
 # make CUDA (nvcc) version consistent with the pytorch CUDA version.
 
