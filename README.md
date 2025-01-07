@@ -84,7 +84,7 @@ Taking `torch-1.13.1+cu117` for example.
 cd chatsim/background/mcnerf
 cd External
 
-# modify the verison if you use a different pytorch installation
+# modify the version if you use a different pytorch installation
 wget https://download.pytorch.org/libtorch/cu117/libtorch-cxx11-abi-shared-with-deps-1.13.1%2Bcu117.zip
 unzip ./libtorch-cxx11-abi-shared-with-deps-1.13.1+cu117.zip
 rm ./libtorch-cxx11-abi-shared-with-deps-1.13.1+cu117.zip
